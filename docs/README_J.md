@@ -102,19 +102,19 @@ Astuce : détaillez et validez l’API avec un contrat OpenAPI, puis générez 
 ## Feuille de route d’amélioration vers un « vrai » logiciel
 
 - Sécurité
-  - Chiffrement côté serveur (au repos) et transport HTTPS strict.
-  - Politique mots de passe, 2FA optionnel, verrouillage après X échecs.
+    - Chiffrement côté serveur (au repos) et transport HTTPS strict.
+    - Politique mots de passe, 2FA optionnel, verrouillage après X échecs.
 - UX
-  - Drag & drop pour upload, indicateurs de progression par fichier, recherches et filtres.
-  - Notifications (système) en fin d’upload long.
+    - Drag & drop pour upload, indicateurs de progression par fichier, recherches et filtres.
+    - Notifications (système) en fin d’upload long.
 - Fonctionnel
-  - Tags, favoris, tri multi‑critères, corbeille/restauration.
-  - Historique/versionning consultable et restauration d’une version.
+    - Tags, favoris, tri multi‑critères, corbeille/restauration.
+    - Historique/versionning consultable et restauration d’une version.
 - Partage
-  - Droits fins (lecture/écriture), mot de passe sur lien, analytics de téléchargement.
+    - Droits fins (lecture/écriture), mot de passe sur lien, analytics de téléchargement.
 - Opérations
-  - Paramétrage via fichiers de conf, logs structurés, télémétrie minimale.
-  - CI/CD (lint, build, tests, packaging), publication d’un installeur.
+    - Paramétrage via fichiers de conf, logs structurés, télémétrie minimale.
+    - CI/CD (lint, build, tests, packaging), publication d’un installeur.
 
 ---
 
@@ -217,10 +217,10 @@ Pour une vision complète du sujet (comptes/JWT, chiffrement au repos, partage, 
 
 * **Rôles** :
 
-  * *Back‑end* (API, sécurité, BDD, packaging),
-  * *JavaFX* (UX dépôt/gestion),
-  * *Web* (pages partage & tableau de bord),
-  * *Ops/Qualité* (Docker, CI, sauvegardes, Postman, documentation).
+    * *Back‑end* (API, sécurité, BDD, packaging),
+    * *JavaFX* (UX dépôt/gestion),
+    * *Web* (pages partage & tableau de bord),
+    * *Ops/Qualité* (Docker, CI, sauvegardes, Postman, documentation).
 * **GitHub** : mono‑repo conseillé (api/, clients/javafx/, clients/web/). Branching : `main`, `dev`, feature branches ; **PR + review** obligatoires.
 * **OpenAPI** source‑de‑vérité** (yaml) : générée **Jour 1** ; *mocks* via JSON Server/Prism (option).
 * **Daily** 10 min ; **board** Kanban (ToDo / In Prog / Review / Done).
@@ -291,9 +291,9 @@ Pour une vision complète du sujet (comptes/JWT, chiffrement au repos, partage, 
 * **Dépôt GitHub** (mono‑repo conseillé) avec README, **OpenAPI.yaml**, scripts SQL/migrations, collection Postman, docker‑compose (optionnel), captures démo.
 * **Documentation** :
 
-  * technique (archi, sécurité, modèle, choix crypto justifiés),
-  * utilisateur (chemin critique),
-  * exploitation (sauvegarde/restauration).
+    * technique (archi, sécurité, modèle, choix crypto justifiés),
+    * utilisateur (chemin critique),
+    * exploitation (sauvegarde/restauration).
 * **Jeu d’essai** reproductible.
 
 ---

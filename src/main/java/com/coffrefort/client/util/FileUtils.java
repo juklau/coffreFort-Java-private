@@ -78,7 +78,9 @@ public class FileUtils {
     }
 
     /** à vérifier => il y a un FileEntry et dans le MainController
-     * Convertit une taille en octets en format lisible (o, Ko, Mo, Go) pour l’affichage
+     * Convertit une taille en octets en format lisible (B, KB, MB, GB) pour l’affichage
+     * (fr: o, ko, mo, go avec 3.4 Mo -exemple)
+     * il renvoie "anglais" avec virgule
      * @param bytes
      * @return
              */

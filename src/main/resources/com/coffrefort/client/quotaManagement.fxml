@@ -94,8 +94,8 @@
             <TableColumn fx:id="idCol" text="ID" prefWidth="50"/>
 <!--            <TableColumn fx:id="usernameCol" text="Nom d'utilisateur" prefWidth="150"/>-->
             <TableColumn fx:id="emailCol" text="Email" prefWidth="200"/>
-            <TableColumn fx:id="quotaUsedCol" text="Utilisé" prefWidth="100"/>
-            <TableColumn fx:id="quotaMaxCol" text="Quota Max" prefWidth="100"/>
+            <TableColumn fx:id="quotaUsedCol" text="Espace utilisé" prefWidth="150"/>
+            <TableColumn fx:id="quotaMaxCol" text="Quota total" prefWidth="150"/>
             <TableColumn fx:id="percentCol" text=" % " prefWidth="80"/>
             <TableColumn fx:id="roleCol" text="Rôle" prefWidth="80"/>
         </columns>

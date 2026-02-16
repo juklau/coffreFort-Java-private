@@ -631,7 +631,7 @@ public class MainController {
                     quotaLabel.setText(FileUtils.formatSize(used) + " / " + FileUtils.formatSize(max));
 
                     // couleur
-                    if (ratio >= 1.0){
+                    if (ratio >= 0.9){  //ancien ratio >= 1.0
                         quotaColor = "#d9534f"; //rouge
                         //quotaBar.setStyle("-fx-accent: #d9534f;"); //=>rouge => avec ça ne marche pas!!
                         statusLabel.setText("Quota atteint — upload bloqué");

@@ -165,7 +165,7 @@ Pour vous déconnecter en toute sécurité :
 3. Sélectionnez une image sur votre ordinateur (JPG, PNG)
 4. L'image s'affiche immédiatement
 
- **Conseil** : Utilisez une photo professionnelle de bonne qualité.
+**Conseil** : Utilisez une photo professionnelle de bonne qualité.
 
 #### Marquer comme favori
 
@@ -464,28 +464,28 @@ Un bouton **⬆️** apparaît en bas à droite quand vous faites défiler la pa
 #### Organisation des contacts
 
 - **Remplissez un maximum de champs**
-   - Plus vous avez d'informations, plus c'est facile de retrouver un contact
+    - Plus vous avez d'informations, plus c'est facile de retrouver un contact
 
 - **Utilisez des notes**
-  - Notez le contexte de la rencontre, les sujets discutés, etc.
-  - Exemple : _"Rencontré au salon de l'entrepreneuriat - intéressé par nos services de consulting"_
+    - Notez le contexte de la rencontre, les sujets discutés, etc.
+    - Exemple : _"Rencontré au salon de l'entrepreneuriat - intéressé par nos services de consulting"_
 
 - **Mettez à jour régulièrement**
-  - Changement de poste, de téléphone → modifiez le contact
- 
+    - Changement de poste, de téléphone → modifiez le contact
+
 - **Utilisez les favoris stratégiquement**
-  - Marquez vos contacts VIP, vos meilleurs clients, etc.
+    - Marquez vos contacts VIP, vos meilleurs clients, etc.
 
 #### Gestion des relances
 
 - **Planifiez vos relances**
-  - Définissez une date réaliste pour chaque relance
+    - Définissez une date réaliste pour chaque relance
 
 - **Vérifiez régulièrement**
-  - Consultez la recherche avec filtre "À relancer" chaque semaine
+    - Consultez la recherche avec filtre "À relancer" chaque semaine
 
 **Mettez à jour le statut**
-  - Après avoir relancé un contact, changez le statut en "Fait"
+- Après avoir relancé un contact, changez le statut en "Fait"
 
 ---
 
@@ -499,10 +499,10 @@ Un bouton **⬆️** apparaît en bas à droite quand vous faites défiler la pa
 #### Recommandations de sécurité
 
 - **Choisissez un mot de passe fort**
-  - Minimum 8 caractères
-  - 1 majuscule
-  - 1 chiffre
-  - Évitez les mots de passe évidents
+    - Minimum 8 caractères
+    - 1 majuscule
+    - 1 chiffre
+    - Évitez les mots de passe évidents
 
 - **Ne partagez jamais votre mot de passe**
 
