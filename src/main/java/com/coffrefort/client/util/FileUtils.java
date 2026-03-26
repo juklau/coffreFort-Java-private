@@ -65,6 +65,7 @@ public class FileUtils {
      * @return Liste non modifiable des extensions autorisées
      */
     public static List<String> getAllowedExtensions(){
+
         return ALLOWED_EXTENSIONS;
     }
 
@@ -74,6 +75,7 @@ public class FileUtils {
      * @return "jpg, jpeg, png, webp, pdf, doc, docx, xlsx"
      */
     public static String getAllowedExtensionString(){
+
         return String.join(".", ALLOWED_EXTENSIONS);
     }
 

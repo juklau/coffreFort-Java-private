@@ -12,4 +12,13 @@ public class PagedShareResponse {
     public int getTotal() {return total;}
     public int getOffset() {return offset;}
     public int getLimit() {return limit;}
+
+    //setters ajoutés pour les tests
+    public void setShares(List<ShareItem> shares) {
+        this.shares = shares;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
+    }
 }

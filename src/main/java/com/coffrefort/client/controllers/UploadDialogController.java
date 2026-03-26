@@ -115,12 +115,13 @@ public class UploadDialogController {
 
         //filtrer les types de fichiers autorisés ???? à érifier
         fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Tous les fichiers autorisés",
+                        "*.jpg", "*.jpeg", "*.png", "*.webp", "*.pdf", "*.doc", "*.docx", "*.xlsx"),
                 new FileChooser.ExtensionFilter("Images", "*.jpg", "*.jpeg", "*.png", "*.webp"),
                 new FileChooser.ExtensionFilter("Documents PDF", "*.pdf"),
                 new FileChooser.ExtensionFilter("Documents Word", "*.doc", "*.docx"),
-                new FileChooser.ExtensionFilter("Fichiers Excel", "*.xlsx"),
-                new FileChooser.ExtensionFilter("Tous les fichiers autorisés",
-                        "*.jpg", "*.jpeg", "*.png", "*.webp", "*.pdf", "*.doc", "*.docx", "*.xlsx")
+                new FileChooser.ExtensionFilter("Fichiers Excel", "*.xlsx")
+
         );
 
         List<File> files = fileChooser.showOpenMultipleDialog(owner);
