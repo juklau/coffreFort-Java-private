@@ -12,18 +12,20 @@ Application de bureau permettant la gestion sécurisée de fichiers chiffrés av
 
 ## Table des matières
 
-- [Vue d'ensemble](#-vue-densemble)
-- [Fonctionnalités](#-fonctionnalités)
-- [Prérequis](#-prérequis)
-- [Installation](#-installation)
-- [Démarrage](#-démarrage)
-- [Architecture](#-architecture)
-- [Guide d'utilisation](#-guide-dutilisation)
-- [Développement](#-développement)
-- [Sécurité](#-sécurité)
-- [Résolution de problèmes](#-résolution-de-problèmes)
-- [Contribution](#-contribution)
-- [Licence](#-licence)
+- [Vue d'ensemble](#vue-densemble)
+- [Fonctionnalités](#fonctionnalités)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Démarrage](#démarrage)
+- [Architecture](#architecture)
+- [Guide d'utilisation](#guide-dutilisation)
+- [Tests](#tests)
+- [CI/CD](#cicd)
+- [Développement](#développement)
+- [Sécurité](#sécurité)
+- [Résolution de problèmes](#résolution-de-problèmes)
+- [Contribution](#contribution)
+- [Licence](#licence)
 
 ---
 
@@ -132,10 +134,12 @@ docker --version
 
 Le projet utilise les dépendances suivantes (gérées automatiquement par Maven) :
 
-- **JavaFX 21.0.2** : Framework d'interface graphique
-- **OkHttp 4.12.0** : Client HTTP pour les appels API
-- **Jackson 2.17.2** : Sérialisation/désérialisation JSON
-- **JWT (jjwt)** : Décodage et validation des tokens JWT
+- JavaFX 21.0.2 : Framework d'interface graphique
+- OkHttp 4.12.0 : Client HTTP pour les appels API
+- Jackson 2.17.2 : Sérialisation/désérialisation JSON
+- JUnit 5.10.2 : Framework de tests unitaires
+- Mockito 5.11.0 : Simulation des dépendances en test
+- TestFX 4.0.18 : Tests des composants JavaFX
 
 ---
 
@@ -144,8 +148,8 @@ Le projet utilise les dépendances suivantes (gérées automatiquement par Maven
 ### 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/PlumCreativ/coffreFortJava.git
-cd coffreFortJava
+git clone https://github.com/juklau/coffreFort-Java-private.git
+cd coffreFort-Java-private
 ```
 
 ### 2. Installation des dépendances
@@ -168,7 +172,7 @@ Le client nécessite un backend opérationnel. Pour démarrer le backend avec Do
 docker-compose up -d
 ```
 
-L'API sera disponible à : `http://localhost:9081`
+L'API sera disponible à : `http://localhost:9083`
 
 ---
 
@@ -195,7 +199,7 @@ mvn clean javafx:run
 Au premier démarrage :
 
 1. **Écran de connexion** apparaît
-2. L'URL du backend est pré-configurée : `http://localhost:9081`
+2. L'URL du backend est pré-configurée : `http://localhost:9083`
 3. Entrez vos identifiants :
     - Email : `votre.email@example.com`
     - Mot de passe : `VotreMotDePasse123!`
@@ -261,12 +265,16 @@ src/
 │                   └── etc                         # 13 autres interfaces
 │
 └── test/
-    └── java/
-        └── com/
-            └── coffrefort/
-                └── client/
-                    └── util/
-                        └── FormatUtilTest.java    # Tests unitaires
+    └── java/com/coffrefort/client/
+        ├── controllers/
+        │   ├── ConfirmDeleteControllerTest.java   # 14 tests
+        │   ├── CreateFolderControllerTest.java    # 21 tests
+        │   ├── LoginControllerTest.java           # 22 tests
+        │   ├── MySharesControllerTest.java        # 16 tests
+        │   ├── RegisterControllerTest.java        # 13 tests
+        │   └── RenameFolderControllerTest.java    # 10 tests
+        └── utils/
+            └── FileUtilsTest.java                 # 41 tests
 ```
 
 ### Pattern architectural : MVC
@@ -312,7 +320,7 @@ L'application suit le pattern **Modèle-Vue-Contrôleur** :
          ▼
 ┌─────────────────┐
 │    Backend      │  (API REST Slim - Docker)
-│      REST       │  http://localhost:9081
+│      REST       │  http://localhost:9083
 └─────────────────┘
 ```
 
@@ -465,6 +473,147 @@ En cas d'erreur :
 
 ---
 
+## Tests
+
+### Vue d'ensemble
+
+**137 tests unitaires — tous passants ✅**
+
+| Suite | Tests | Type |
+|---|---|---|
+| `ConfirmDeleteControllerTest` | 14 | Logique pure |
+| `CreateFolderControllerTest` | 21 | Logique pure |
+| `LoginControllerTest` | 22 | Logique pure |
+| `MySharesControllerTest` | 16 | JavaFX + Mockito |
+| `RegisterControllerTest` | 13 | JavaFX (TestFX) |
+| `RenameFolderControllerTest` | 10 | JavaFX (TestFX) |
+| `FileUtilsTest` | 41 | Logique pure |
+| **Total** | **137** | |
+
+### Deux stratégies de test
+
+**Logique pure** (sans JavaFX) — pour les contrôleurs dont la validation est indépendante de l'UI. La logique est simulée directement dans le test via des méthodes helpers.
+
+**Injection via réflexion** (avec TestFX) — pour les contrôleurs qui touchent des composants UI. Les champs `@FXML` sont injectés sans charger de fichier `.fxml`.
+
+### Lancer les tests
+
+```bash
+# Tous les tests
+mvn test
+
+# Une suite spécifique
+mvn test -Dtest=FileUtilsTest
+mvn test -Dtest=MySharesControllerTest
+
+# Un test par nom
+mvn test -Dtest=RenameFolderControllerTest#testSetCurrentName_remplitLeChampEtLeLabel
+```
+
+### Résultats attendus
+
+```
+Tests run: 137, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+### Dépendances de test
+
+```xml
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <version>5.10.2</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.mockito</groupId>
+    <artifactId>mockito-core</artifactId>
+    <version>5.11.0</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.testfx</groupId>
+    <artifactId>testfx-junit5</artifactId>
+    <version>4.0.18</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.testfx</groupId>
+    <artifactId>openjfx-monocle</artifactId>
+    <version>21.0.2</version>
+    <scope>test</scope>
+</dependency>
+```
+
+Pour la documentation complète des tests, voir [`docs/TESTS_JUNIT_GUIDE.md`](docs/TESTS_JUNIT_GUIDE.md).
+
+---
+
+## CI/CD
+
+### Workflow GitHub Actions
+
+Le projet utilise GitHub Actions pour automatiser l'exécution des tests à chaque push et pull request.
+
+**Fichier** : `.github/workflows/tests.yml`
+
+```yaml
+name: Tests unitaires Java
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Tests unitaires (Java 23)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '23'
+          distribution: 'temurin'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-23-${{ hashFiles('**/pom.xml') }}
+      - run: mvn install -DskipTests --no-transfer-progress
+      - run: mvn test --no-transfer-progress
+        env:
+          DISPLAY: ':99'
+          _JAVA_OPTIONS: >-
+            -Dtestfx.headless=true
+            -Dprism.order=sw
+            -Djava.awt.headless=true
+            -Dnet.bytebuddy.experimental=true
+```
+
+### Déclencheurs
+
+| Déclencheur | Quand |
+|---|---|
+| `push` | À chaque push sur `main` ou `develop` |
+| `pull_request` | À l'ouverture d'une PR vers `main` ou `develop` |
+| `workflow_dispatch` | Manuellement depuis l'onglet **Actions** de GitHub |
+
+### Points clés pour JavaFX en CI
+
+Sur Ubuntu GitHub Actions il n'y a pas d'écran physique — les tests JavaFX nécessitent des options spécifiques :
+
+| Option | Rôle |
+|---|---|
+| `DISPLAY=':99'` | Écran virtuel pour JavaFX |
+| `-Dtestfx.headless=true` | TestFX sans interface graphique |
+| `-Dprism.order=sw` | Rendu logiciel (pas de GPU) |
+| `-Dnet.bytebuddy.experimental=true` | Support Java 23 pour Mockito |
+
+---
+
 ##  Développement
 
 ### Point d'entrée : `Launcher.java`
@@ -483,337 +632,13 @@ public class Launcher {
 
 **Pourquoi Launcher ?** Évite l'erreur "JavaFX runtime components are missing" avec certains JDK.
 
-### Classe principale : `App.java`
-
-```java
-package com.coffrefort.client;
-
-import javafx.application.Application;
-import javafx.stage.Stage;
-
-public class App extends Application {
-    private ApiClient apiClient;
-    
-    @Override
-    public void start(Stage stage) throws Exception {
-        this.apiClient = new ApiClient();
-        
-        // Configuration SessionManager
-        SessionManager sessionManager = SessionManager.getInstance();
-        sessionManager.setApiClient(apiClient);
-        sessionManager.setOnSessionExpired(() -> {
-            // Rediriger vers connexion
-            openLogin(stage);
-        });
-        
-        stage.setTitle("Coffre‑fort numérique — CryptoVault");
-        openLogin(stage);
-    }
-}
-```
-
 ### Gestion de la session : `SessionManager.java`
 
-**Pattern Singleton** pour une instance unique dans toute l'application.
-
-```java
-package com.coffrefort.client.util;
-
-import com.coffrefort.client.ApiClient;
-import javafx.application.Platform;
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class SessionManager {
-    
-    private static SessionManager instance;
-    private Timer sessionTimer;
-    private Runnable onSessionExpired;
-    private ApiClient apiClient;
-    
-    private SessionManager() {}
-    
-    public static SessionManager getInstance() {
-        if (instance == null) {
-            instance = new SessionManager();
-        }
-        return instance;
-    }
-    
-    public void setApiClient(ApiClient apiClient) {
-        this.apiClient = apiClient;
-    }
-    
-    public void setOnSessionExpired(Runnable onSessionExpired) {
-        this.onSessionExpired = onSessionExpired;
-    }
-    
-    /**
-     * Démarre la vérification du token toutes les minutes
-     */
-    public void startSessionMonitoring() {
-        stopSessionMonitoring(); // Arrêter l'ancien timer si existant
-        
-        sessionTimer = new Timer(true); // Daemon thread
-        sessionTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                checkTokenValidity();
-            }
-        }, 60000, 60000); // Check après 1 min, puis toutes les minutes
-        
-        System.out.println("SessionManager - Surveillance démarrée");
-    }
-    
-    /**
-     * Arrête la vérification périodique
-     */
-    public void stopSessionMonitoring() {
-        if (sessionTimer != null) {
-            sessionTimer.cancel();
-            sessionTimer = null;
-            System.out.println("SessionManager - Surveillance arrêtée");
-        }
-    }
-    
-    /**
-     * Vérifie la validité du token
-     */
-    public void checkTokenValidity() {
-        if (apiClient == null) return;
-        
-        String token = apiClient.getAuthToken();
-        if (token == null || token.isEmpty()) return;
-        
-        // Vérifier si le token est expiré via JwtUtils
-        if (JwtUtils.isTokenExpired(token)) {
-            System.out.println("SessionManager - Token expiré détecté !");
-            handleSessionExpiration();
-        }
-    }
-    
-    /**
-     * Gère l'expiration de session
-     */
-    public void handleSessionExpiration() {
-        stopSessionMonitoring();
-        
-        Platform.runLater(() -> {
-            if (onSessionExpired != null) {
-                // Déconnexion automatique
-                if (apiClient != null) {
-                    apiClient.logout();
-                }
-                
-                // Afficher un message au user
-                UIDialogs.showError(
-                    "Session expirée",
-                    "Votre session a expiré",
-                    "Veuillez vous reconnecter."
-                );
-                
-                // Rediriger vers UI connexion
-                onSessionExpired.run();
-            }
-        });
-    }
-}
-```
+Pattern Singleton — vérifie la validité du token JWT toutes les 60 secondes et déclenche une déconnexion automatique si le token est expiré.
 
 ### Configuration : `AppProperties.java`
 
-Gestion simple de la configuration en mémoire (sans fichier `.properties`).
-
-```java
-package com.coffrefort.client.config;
-
-import java.util.Properties;
-
-public class AppProperties {
-    private static Properties prop = new Properties();
-    
-    public static void set(String key, String value) {
-        prop.setProperty(key, value);
-        System.out.println("AppProperties.set -> " + key + ": " + value);
-    }
-    
-    public static String get(String key) {
-        String value = prop.getProperty(key);
-        System.out.println("AppProperties.get -> " + key + ": " + value);
-        return value;
-    }
-    
-    public static void remove(String key) {
-        prop.remove(key);
-    }
-    
-    // Constructeur privé pour empêcher l'instanciation
-    private AppProperties() {}
-}
-```
-
-**Usage** :
-```java
-// Définir l'URL de l'API
-AppProperties.set("api.base.url", "http://localhost:9081");
-
-// Récupérer l'URL
-String apiUrl = AppProperties.get("api.base.url");
-```
-
-### Exemple : Upload avec progression
-
-```java
-// Dans MainController.java
-@FXML
-private void handleUpload() {
-    
-    // Vérifier le quota
-    if (currentQuota != null && currentQuota.getUsed() >= currentQuota.getMax()) {
-        UIDialogs.showError(
-            "Quota atteint",
-            null,
-            "Votre espace de stockage est plein. Veuillez supprimer des fichiers."
-        );
-        return;
-    }
-    
-    try {
-        FXMLLoader loader = new FXMLLoader(
-            getClass().getResource("/com/coffrefort/client/uploadDialog.fxml")
-        );
-        Parent root = loader.load();
-        
-        // Récupération du contrôleur
-        UploadDialogController controller = loader.getController();
-        controller.setApiClient(apiClient);
-        
-        if (currentFolder != null) {
-            controller.setTargetFolderId(currentFolder.getId());
-        }
-        
-        Stage dialogStage = new Stage();
-        dialogStage.setTitle("Uploader des fichiers");
-        dialogStage.initModality(Modality.WINDOW_MODAL);
-        dialogStage.initOwner(uploadButton.getScene().getWindow());
-        dialogStage.setScene(new Scene(root));
-        controller.setDialogStage(dialogStage);
-        
-        // Callback pour rafraîchir après upload
-        controller.setOnUploadSuccess(() -> {
-            Platform.runLater(() -> {
-                if (currentFolder != null) {
-                    loadFiles(currentFolder);
-                }
-                updateQuota();
-                statusLabel.setText("Upload terminé");
-            });
-        });
-        
-        dialogStage.showAndWait();
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-        UIDialogs.showError(
-            "Erreur",
-            null,
-            "Impossible d'ouvrir la fenêtre d'upload: " + e.getMessage()
-        );
-    }
-}
-```
-
-### Gestion des erreurs dans `ApiClient`
-
-```java
-public void deleteFile(int fileId) throws Exception {
-    if (authToken == null || authToken.isEmpty()) {
-        throw new IllegalStateException(
-            "Utilisateur non authentifié (auth.token manquant)."
-        );
-    }
-    
-    if (fileId <= 0) {
-        throw new IllegalArgumentException("FileId invalide: " + fileId);
-    }
-    
-    HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(baseUrl + "/files/" + fileId))
-        .header("Accept", "application/json")
-        .header("Authorization", "Bearer " + authToken)
-        .DELETE()
-        .build();
-    
-    HttpResponse<String> response = executeRequest(request);
-    int status = response.statusCode();
-    String body = response.body();
-    
-    // 204 => requête réussie, pas de contenu
-    if (status == 200 || status == 204) {
-        return;
-    }
-    
-    // Gestion des erreurs spécifiques
-    if (status == 403) {
-        throw new AuthenticationException(
-            "Accès refusé : permissions insuffisantes"
-        );
-    }
-    
-    if (status == 404) {
-        throw new RuntimeException("Fichier introuvable");
-    }
-    
-    // Autres erreurs
-    String error = JsonUtils.extractJsonField(body, "error");
-    error = JsonUtils.unescapeJsonString(error);
-    
-    if (error == null || error.isEmpty()) {
-        error = body;
-    }
-    
-    throw new RuntimeException(
-        "Erreur de suppression (HTTP " + status + "): " + error
-    );
-}
-```
-
----
-
-##  Tests
-
-### Tests unitaires
-
-```bash
-# Exécuter tous les tests
-mvn test
-
-# Ou avec nettoyage préalable
-mvn clean test
-```
-
-### Exemple de test existant
-
-```java
-package com.coffrefort.client.util;
-
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-
-public class FormatUtilTest {
-    
-    @Test
-    public void testFormatFileSize() {
-        assertEquals("1,5 KB", FileUtils.formatSize(1536));
-        assertEquals("2,3 MB", FileUtils.formatSize(2411724));
-        assertEquals("1,00 GB", FileUtils.formatSize(1073741824));
-    }
-}
-```
-
-### Tests d'intégration
-
-**⚠️ À implémenter** : Les tests d'intégration nécessitent un backend de test opérationnel.
+Gestion de la configuration en mémoire (sans fichier `.properties`) via `AppProperties.set(key, value)` et `AppProperties.get(key)`.
 
 ---
 
@@ -856,7 +681,7 @@ Le `SessionManager` vérifie **automatiquement** la validité du token toutes le
 ### Communication HTTP
 
 **⚠️ Note importante** :
-- Actuellement : Communication en **HTTP** (`http://localhost:9081`)
+- Actuellement : Communication en **HTTP** (`http://localhost:9083`)
 - **Production** : Passer en **HTTPS** recommandé
 - **SSL/TLS** : Non implémenté pour le moment (développement local)
 
@@ -900,11 +725,11 @@ mvn clean javafx:run
    docker-compose up -d
    
    # Tester l'API
-   curl http://localhost:9081/
+   curl http://localhost:9083/
    ```
 
 2. **L'URL de l'API est-elle correcte ?**
-    - Par défaut : `http://localhost:9081`
+    - Par défaut : `http://localhost:9083`
     - Vérifier dans le code de connexion
 
 3. **Firewall/antivirus bloque-t-il la connexion ?**
@@ -1013,14 +838,16 @@ Ce projet est développé dans un cadre pédagogique.
 
 Pour toute question ou problème :
 
-- **Issues GitHub** : [https://github.com/PlumCreativ/coffreFortJava/issues](https://github.com/PlumCreativ/coffreFortJava/issues)
-- **Documentation backend** : Voir le README du backend
+- **Issues GitHub** : [https://github.com/juklau/coffreFort-Java-private/issues](https://github.com/juklau/coffreFort-Java-private/issues)
+- **Documentation backend** : [Voir le README du backend](https://github.com/juklau/coffreFort-backEnd-private.git)
+- **Documentation tests** : Voir [`docs/TESTS_JUNIT_GUIDE.md`](docs/TESTS_JUNIT_GUIDE.md)
 
 ---
 
 ## Créateurs
 
 **Klaudia Juhasz**
+**Denys Lyulchak**
 
 ---
 
@@ -1030,25 +857,20 @@ Pour toute question ou problème :
 **Dernière mise à jour** : 12 février 2026
 
 ### Fonctionnalités implémentées
--  Authentification avec JWT
--  Gestion des dossiers (CRUD complet)
--  Gestion des fichiers (upload, download, suppression)
--  Versionnage de fichiers
--  Partages sécurisés (création, révocation, suppression)
--  Gestion des quotas (visualisation, alertes)
--  Administration (modification quotas, suppression users)
--  SessionManager avec surveillance automatique
--  UIDialogs pour messages standardisés
+- Authentification avec JWT + surveillance automatique de session
+- Gestion des dossiers (CRUD complet)
+- Gestion des fichiers (upload, download, suppression)
+- Versionnage de fichiers
+- Partages sécurisés (création, révocation, suppression)
+- Gestion des quotas (visualisation, alertes)
+- Administration (modification quotas, suppression users)
+- 137 tests unitaires (JUnit 5 + Mockito + TestFX)
+- CI/CD GitHub Actions
 
 ### En développement / À implémenter
 
-####  Tests
--  Tests unitaires (couverture complète)
--  Tests d'intégration avec backend de test
-
 ####  Sécurité
 -  Communication HTTPS (production)
--  Validation SSL/TLS
 -  Politique de mot de passe renforcée (complexité, longueur)
 -  Fonctionnalité "Mot de passe oublié" (réinitialisation par email)
 -  Refresh token (renouvellement automatique de session)

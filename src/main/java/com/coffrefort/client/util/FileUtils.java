@@ -1,6 +1,7 @@
 package com.coffrefort.client.util;
 
 import javafx.stage.FileChooser;
+import java.util.Locale;
 
 import java.util.List;
 
@@ -85,6 +86,7 @@ public class FileUtils {
      * il renvoie "anglais" avec virgule
      * @param bytes
      * @return
+     * Locale.US => pour le test: github actions local us
              */
     public static String formatSize(long bytes) {
         if (bytes < 1024) {
@@ -92,14 +94,14 @@ public class FileUtils {
         }
         double kb = bytes / 1024.0;
         if (kb < 1024) {
-            return String.format("%.1f KB", kb);
+            return String.format(Locale.US, "%.1f KB", kb);
         }
         double mb = kb / 1024.0;
         if (mb < 1024) {
-            return String.format("%.1f MB", mb);
+            return String.format(Locale.US,"%.1f MB", mb);
         }
         double gb = mb / 1024.0;
-        return String.format("%.2f GB", gb);
+        return String.format(Locale.US,"%.2f GB", gb);
     }
 
 

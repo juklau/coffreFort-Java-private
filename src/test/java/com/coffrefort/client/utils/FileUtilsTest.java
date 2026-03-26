@@ -125,19 +125,19 @@ class FileUtilsTest {
     @Test
     @DisplayName("Devrait afficher en KB si la taille est entre 1024 et 1 Mo")
     void testFormatSize_kilooctets() {
-        assertEquals("1,0 KB", FileUtils.formatSize(1024));
+        assertEquals("1.0 KB", FileUtils.formatSize(1024));
     }
 
     @Test
     @DisplayName("Devrait afficher en MB si la taille est entre 1 Mo et 1 Go")
     void testFormatSize_megaoctets() {
-        assertEquals("1,0 MB", FileUtils.formatSize(1024 * 1024));
+        assertEquals("1.0 MB", FileUtils.formatSize(1024 * 1024));
     }
 
     @Test
     @DisplayName("Devrait afficher en GB si la taille dépasse 1 Go")
     void testFormatSize_gigaoctets() {
-        assertEquals("1,00 GB", FileUtils.formatSize(1024L * 1024 * 1024));
+        assertEquals("1.00 GB", FileUtils.formatSize(1024L * 1024 * 1024));
     }
 
     @Test
@@ -150,7 +150,7 @@ class FileUtilsTest {
     @DisplayName("Devrait arrondir correctement en MB")
     void testFormatSize_arrondi() {
         // 1.5 MB = 1024 * 1024 * 1.5 = 1572864 bytes
-        assertEquals("1,5 MB", FileUtils.formatSize(1572864));
+        assertEquals("1.5 MB", FileUtils.formatSize(1572864));
     }
 
     // ==================== removeExtension() ====================
