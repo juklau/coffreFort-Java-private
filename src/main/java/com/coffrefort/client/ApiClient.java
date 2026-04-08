@@ -48,12 +48,12 @@ public class ApiClient {
     /**
      * Initialise l’ApiClient avec l’URL par défaut (localhost)
      */
-    public ApiClient() {
-        this("http://localhost:9083");
-    }
 //    public ApiClient() {
-//        this("https://cryptovault.iris.a3n.fr:4433");
+//        this("http://localhost:9083");
 //    }
+    public ApiClient() {
+        this("https://cryptovault.iris.a3n.fr:4433");
+    }
 
     /**
      * Initialise l’ApiClient avec une URL de backend personnalisée
