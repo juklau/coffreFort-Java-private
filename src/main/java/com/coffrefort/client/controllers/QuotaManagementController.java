@@ -52,6 +52,7 @@ public class QuotaManagementController {
         usersTable.setItems(userList);
 
         modifyQuotaButton.setDisable(true);
+
         // activer le bouton "modifier" => si une ligne est séléctionné
         usersTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             modifyQuotaButton.setDisable(newValue == null);
@@ -249,6 +250,7 @@ public class QuotaManagementController {
             controller.setUser(selected);
 
             controller.setOnSuccess(() -> {
+
                 //rafraichir après modif
                 refreshNow();
             });

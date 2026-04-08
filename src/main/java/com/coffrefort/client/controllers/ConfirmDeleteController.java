@@ -71,7 +71,7 @@ public class ConfirmDeleteController {
      */
     public void setOnConfirm(Runnable onConfirm) {
         this.onConfirm = onConfirm;
-    }
+    } // => mémorise, n'exécute PAS
 
     @FXML
     /**
@@ -79,7 +79,7 @@ public class ConfirmDeleteController {
      */
     private void handleCancel() {
         if (onCancel != null) {
-            onCancel.run();
+            onCancel.run();  // => exécute maintenant ce qui a été stocké
         }
         close();
     }

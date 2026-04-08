@@ -24,8 +24,8 @@ public class VersionEntry {
     private int version;
     private long size;
 
-    @JsonProperty("created_at")
-    private String createdAt;
+    @JsonProperty("created_at")     // ← JSON utilise "created_at"
+    private String createdAt;       // ← Java utilise camelCase
     private String checksum;
 
     @JsonProperty("is_current")
@@ -89,7 +89,7 @@ public class VersionEntry {
         return getFormattedSize(size);
     }
 
-    public boolean getIsCurrent(){
+    public boolean isCurrent(){
         return isCurrent;
     }
 

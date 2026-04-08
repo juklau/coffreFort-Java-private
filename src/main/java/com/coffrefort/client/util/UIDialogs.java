@@ -15,7 +15,7 @@ public final class UIDialogs {
      * @param header
      * @param content
      */
-    public static void showInfo(String title,String header, String content) {
+    public static void showInfo(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(header);
@@ -26,7 +26,7 @@ public final class UIDialogs {
 
         Label icon = new Label("i");
         icon.setStyle(
-                "-fx-background-color: #0d5c05;" +
+                "-fx-background-color: #0d5c05;" +    //couleur vert foncé
                         "-fx-text-fill: white;" +
                         "-fx-font-weight: bold;" +
                         "-fx-alignment: center;" +
@@ -59,7 +59,7 @@ public final class UIDialogs {
 
         Label icon = new Label("i");
         icon.setStyle(
-                "-fx-background-color: #0d5c05;" +
+                "-fx-background-color: #0d5c05;" +      //couleur vert foncé
                         "-fx-text-fill: white;" +
                         "-fx-font-weight: bold;" +
                         "-fx-alignment: center;" +
@@ -112,7 +112,7 @@ public final class UIDialogs {
 
         Label icon = new Label("!");
         icon.setStyle(
-                "-fx-background-color: #980b0b;" +
+                "-fx-background-color: #980b0b;" +      //couleur rouge foncé
                         "-fx-text-fill: white;" +
                         "-fx-font-weight: bold;" +
                         "-fx-alignment: center;" +
@@ -148,7 +148,7 @@ public final class UIDialogs {
         // Icône bordeaux
         Label icon = new Label("!");
         icon.setStyle(
-                "-fx-background-color: #980b0b;" +
+                "-fx-background-color: #980b0b;" +      //couleur rouge foncé
                         "-fx-text-fill: white;" +
                         "-fx-font-weight: bold;" +
                         "-fx-alignment: center;" +
@@ -160,7 +160,7 @@ public final class UIDialogs {
         alert.setGraphic(icon);
 
         DialogPane pane = alert.getDialogPane();
-        pane.setStyle("-fx-background-color: #E5E5E5;");
+        pane.setStyle("-fx-background-color: #E5E5E5;");        //couleur gris très clair
 
         // Boutons personnalisés
         ButtonType confirmType = new ButtonType("Confirmer", ButtonBar.ButtonData.OK_DONE);
@@ -171,7 +171,7 @@ public final class UIDialogs {
         Button revokeBtn = (Button) pane.lookupButton(confirmType);
         if (revokeBtn != null) {
             revokeBtn.setStyle(
-                    "-fx-background-color: #980b0b;" +
+                    "-fx-background-color: #980b0b;" +      //couleur rouge foncé
                             "-fx-text-fill: white;" +
                             "-fx-font-weight: bold;" +
                             "-fx-cursor: hand;"
@@ -181,8 +181,8 @@ public final class UIDialogs {
         Button cancelBtn = (Button) pane.lookupButton(cancelType);
         if (cancelBtn != null) {
             cancelBtn.setStyle(
-                    "-fx-background-color: #cccccc;" +
-                            "-fx-text-fill: #333333;" +
+                            "-fx-background-color: #cccccc;" +      //couleur gris clair (bordure, fond)
+                            "-fx-text-fill: #333333;" +             //couleur  gris très foncé
                             "-fx-cursor: hand;"
             );
         }
@@ -200,7 +200,7 @@ public final class UIDialogs {
         Button okBtn = (Button) pane.lookupButton(ButtonType.OK);
         if (okBtn != null) {
             okBtn.setStyle(
-                    "-fx-background-color: #980b0b;" +
+                    "-fx-background-color: #980b0b;" +      //couleur rouge foncé
                             "-fx-text-fill: white;" +
                             "-fx-font-weight: bold;" +
                             "-fx-cursor: hand;"
@@ -217,7 +217,7 @@ public final class UIDialogs {
         Button okBtn = (Button) pane.lookupButton(ButtonType.OK);
         if (okBtn != null) {
             okBtn.setStyle(
-                    "-fx-background-color: #0d5c05;" +
+                    "-fx-background-color: #0d5c05;" +      //couleur vert foncé
                             "-fx-text-fill: white;" +
                             "-fx-font-weight: bold;" +
                             "-fx-cursor: hand;"

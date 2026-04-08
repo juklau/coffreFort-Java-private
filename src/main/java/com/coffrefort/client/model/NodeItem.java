@@ -9,7 +9,7 @@ import java.util.List;
 public class NodeItem {
 
     //propriétés
-    public Integer id;
+    public int id;
     private String name;
     private List<NodeItem> children = new ArrayList<>();
     private NodeType type;
@@ -26,10 +26,11 @@ public class NodeItem {
     //public NodeItem() {}
 
     //méthodes
-    public NodeItem(Integer id, String name, NodeType type) {
+    public NodeItem(int id, String name, NodeType type) {
         this.id = id;
         this.name = name;
         this.type = type;
+
     }
 
     public static NodeItem folder(int id, String name, NodeType type) {
@@ -46,7 +47,7 @@ public class NodeItem {
         return this;
     }
 
-    public void setId(Integer id) { this.id = id; }
+    public void setId(int id) { this.id = id; }
     public void setName(String name){
         this.name = name;
     }
@@ -54,14 +55,12 @@ public class NodeItem {
         this.type = type;
     }
 
-    public Integer getId() { return id; }
+    public int getId() { return id; }
     public String getName() { return name; }
     public List<NodeItem> getChildren() { return children; }
     public NodeType getType(){
         return type;
     }
-
-
 
 
     @Override

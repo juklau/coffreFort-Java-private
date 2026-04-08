@@ -149,7 +149,8 @@ Le projet utilise les dépendances suivantes (gérées automatiquement par Maven
 
 ```bash
 git clone https://github.com/juklau/coffreFort-Java-private.git
-cd coffreFort-Java-private
+mv coffreFort-Java-private coffreFort-Java
+cd coffreFort-Java
 ```
 
 ### 2. Installation des dépendances

@@ -55,6 +55,7 @@ public class UserQuota {
         }
         double percent = (used * 100.0) / max;
         return String.format("%.1f", percent);
+
     }
 
 }

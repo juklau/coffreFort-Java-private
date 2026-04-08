@@ -17,4 +17,5 @@ public class PagedFilesResponse {
     public void setTotal(int total) { this.total = total; }
     public void setOffset(int offset) { this.offset = offset; }
     public void setLimit(int limit) { this.limit = limit; }
+
 }

@@ -31,7 +31,7 @@ public class FileUtils {
 
         int lastDot = fileName.lastIndexOf('.');
         if(lastDot == -1 || lastDot == fileName.length() - 1 ){
-            return ""; //=> pad d'extension
+            return ""; //=> pas d'extension
         }
 
         return fileName.substring(lastDot + 1).toLowerCase();
@@ -170,7 +170,6 @@ public class FileUtils {
 
         chooser.setSelectedExtensionFilter(defaultFilter);
     }
-
 
 }
 

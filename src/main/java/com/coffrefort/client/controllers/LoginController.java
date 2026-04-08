@@ -45,7 +45,7 @@ public class LoginController {
     @FXML private Button connexionButton;
     @FXML private Label statusLabel;
 
-    @FXML private Hyperlink ForgotPasswordLink;
+    @FXML private Hyperlink forgotPasswordLink;
     @FXML private Hyperlink mentionsLegales;
 
 
@@ -75,11 +75,11 @@ public class LoginController {
             }
         });
 
-        // Binder le texte des 2 champs mot de passe => avoir le même texte
+        // Binder le texte des 2 champs mot de passe => avoir le même texte  => bind bidirectionnel
         passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
 
         //lier le lien à "mdp oublié"
-        ForgotPasswordLink.setOnAction(event -> handleForgotPassword());
+        forgotPasswordLink.setOnAction(event -> handleForgotPassword());
 
         //lier le lien à "mentions légales"
         mentionsLegales.setOnAction(event -> handleGoToMentionsLegalesFromLogin());
@@ -151,8 +151,13 @@ public class LoginController {
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
 
-        if (email.isEmpty() || password.isEmpty()) {
-            errorLabel.setText("Veuillez saisir l'email et le mot de passe.");
+        if (email.isEmpty()) {
+            errorLabel.setText("Veuillez saisir votre email");
+            return;
+        }
+
+        if (email.length() > 255) {
+            errorLabel.setText("L'email est trop long (maximum 255 caractères).");
             return;
         }
 
@@ -161,11 +166,30 @@ public class LoginController {
             return;
         }
 
+        // --- validation mot de passe ---
+        if (password.isEmpty()) {
+            errorLabel.setText("Veuillez saisir votre mot de passe.");
+            return;
+        }
+
+        // aligné avec le backend : minimum 12 caractères
+        if (password.length() < 12) {
+            errorLabel.setText("Le mot de passe doit comporter au moins 12 caractères.");
+            return;
+        }
+
+        // protection contre les attaques bcrypt
+        if (password.length() > 128) {
+            errorLabel.setText("Le mot de passe ne peut pas dépasser 128 caractères.");
+            return;
+        }
+
         if(loginSelectShowPassword.isSelected()){
             errorLabel.setText("Veuillez masquer le mot de passe avant de vous connecter.");
             return;
         }
 
+        // appel API
         connexionButton.setDisable(true);
         statusLabel.setText("Connexion...");
 
@@ -175,7 +199,8 @@ public class LoginController {
                 try {
                     return apiClient.login(email, password);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    //throw new RuntimeException("Échec de la connexion pour " + email + " : " + e.getMessage(), e);
+                    throw new RuntimeException(e);      // wrap minimal pour Task
                 }
             }
         };
@@ -183,12 +208,13 @@ public class LoginController {
         task.setOnSucceeded(event -> {
             connexionButton.setDisable(false);
             String token  = task.getValue();
-            if (token  != null) {
+            if (token != null) {
                 statusLabel.setText("Connexion réussie.");
 
-                boolean isAdmin = apiClient.isAdmin();
-                System.out.println("DEBUG - Utilisateur connecté: " + email);
-                System.out.println("DEBUG - Est admin: " + isAdmin);
+                //pour débouger
+                //boolean isAdmin = apiClient.isAdmin();
+                //system.out.println("DEBUG - Utilisateur connecté: " + email);
+                //System.out.println("DEBUG - Est admin: " + isAdmin);
 
                 //il faut appeler callback onSuccess au lieu de charger manuellement main.fxml
                 if (onSuccess != null){
@@ -199,11 +225,9 @@ public class LoginController {
 //                try {
 //                    FXMLLoader mainLoader = new FXMLLoader(getClass().getResource("/com/coffrefort/client/main.fxml"));
 //                    Parent mainRoot = mainLoader.load();
-//
 //                    MainController mainController = mainLoader.getController();
 //                    mainController.setApiClient(apiClient);
 //                    mainController.setApp(app);
-//
 //                    Stage stage = (Stage) emailField.getScene().getWindow();
 //                    stage.setScene(new Scene(mainRoot));
 //                    stage.setTitle("CryptoVault - Accueil");
@@ -224,12 +248,17 @@ public class LoginController {
 
             Throwable exception = task.getException();
 
-            //erreur métier venant de l'API
-            if (exception.getCause() instanceof ApiClient.AuthenticationException authEx) {
-                errorLabel.setText(authEx.getMessage());
-            }else if (exception.getCause() instanceof ApiClient.RegistrationException regEx) {
-                errorLabel.setText(regEx.getMessage());
-            }else if (exception.getCause() instanceof java.net.ConnectException) { //=> Problème réseau / serveur
+            if (exception == null) {
+                errorLabel.setText("Erreur technique inattendue.");
+                return;
+            }
+
+            // remonte la vraie cause si wrappée dans RuntimeException
+            Throwable cause = exception.getCause() != null ? exception.getCause() : exception;
+
+            if (cause instanceof ApiClient.AuthenticationException) {
+                errorLabel.setText("Email ou mot de passe incorrect.");
+            }else if (cause instanceof java.net.ConnectException) { //=> Problème réseau / serveur
                 errorLabel.setText("Impossible de joindre le serveur.");
             }else {
                 errorLabel.setText("Erreur technique inattendue.");
@@ -262,7 +291,7 @@ public class LoginController {
             // Récupération du contrôleur
             ForgotPasswordController controller = loader.getController();
 
-            Stage stage = (Stage)ForgotPasswordLink.getScene().getWindow();
+            Stage stage = (Stage)forgotPasswordLink.getScene().getWindow();
             stage.setTitle("CryptoVault - Mot de passe oublié");
 
             stage.setResizable(false);

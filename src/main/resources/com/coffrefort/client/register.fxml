@@ -128,7 +128,7 @@
                 <!-- Mot de passe masqué -->
                 <PasswordField fx:id="passwordField1"
                                prefHeight="35.0"
-                               promptText="Minimum 8 caractères"
+                               promptText="Minimum 12 caractères"
                                style="-fx-background-radius: 4;
                                         -fx-border-color: #cccccc;
                                         -fx-border-radius: 4;
@@ -146,7 +146,7 @@
                 <TextField fx:id="passwordVisibleField1"
                            managed="false"
                            prefHeight="35.0"
-                           promptText="Minimum 8 caractères"
+                           promptText="Minimum 12 caractères"
                            style="-fx-background-radius: 4;
                                     -fx-border-color: #cccccc;
                                     -fx-border-radius: 4;

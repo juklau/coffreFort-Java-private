@@ -18,5 +18,6 @@ public class Quota {
     public double getUsageRatio() {
         if (max <= 0) return 0.0;
         return (double) used / (double) max;
+
     }
 }

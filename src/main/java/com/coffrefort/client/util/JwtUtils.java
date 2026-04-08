@@ -157,6 +157,7 @@ public class JwtUtils {
      * Empêche l’instanciation de la classe utilitaire JwtUtils
      */
     private JwtUtils(){};
+
 }
 
 

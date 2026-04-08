@@ -90,7 +90,7 @@ public class MainController {
         pagination.setVisible(false);
         pagination.setManaged(false);
 
-        //mettre en place le listener
+        // mettre en place le listener
         // quand je clique sur un dossier => currentFolder <=> currentFolder= null
         treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldItem, newItem) -> {
             if (newItem != null && newItem.getValue() != null) {
@@ -248,9 +248,9 @@ public class MainController {
 
             //affichage le menu => que si la ligne n'est pas vide
             row.contextMenuProperty().bind(
-                    javafx.beans.binding.Bindings.when(row.emptyProperty())
-                            .then((ContextMenu)null)
-                            .otherwise(contextMenu)
+                    javafx.beans.binding.Bindings.when(row.emptyProperty()) // est-ce que la ligne est vide ?
+                            .then((ContextMenu)null)                        // oui → pas de menu
+                            .otherwise(contextMenu)                          // non → menu "Supprimer"
             );
 
             //ouvrir les détails d'un fichier en double cliquant dessus
@@ -363,10 +363,13 @@ public class MainController {
         //déclenchement que sur clic droit
         treeView.setOnContextMenuRequested(event -> {
 
-            //détecter si la souris est sur une TreeCell => récupération du noeud -> texte, icône, cellule...
+            //détecter si la souris est sur une TreeCell (avec un item dossier) => récupération du noeud -> texte, icône, cellule...
+            //retourne l'élément graphique le plus précis sous le curseur
             Node node = event.getPickResult().getIntersectedNode();
 
             while ( node != null && !(node instanceof TreeCell) ) {
+
+                //on remonte l'arbre de composants jusqu'à trouver la TreeCell parente
                 node = node.getParent();
             }
 
@@ -378,6 +381,8 @@ public class MainController {
 
             //sinon -> zone vide => afficher le menu racine
             rootMenu.show(treeView, event.getScreenX(), event.getScreenY());
+
+            //il empêche l'événement de remonter et de déclencher d'autres handlers par accident
             event.consume();
 
         });
@@ -410,6 +415,7 @@ public class MainController {
         new Thread(() -> {
             try {
                 Thread.sleep(1000);
+
                 // Charger l'arborescence depuis l'API
                 NodeItem root = apiClient.listRoot();
 
@@ -538,7 +544,9 @@ public class MainController {
         loadFiles(folder, 0);
     }
 
-    // à écrire!!!!
+    /**
+     * mise à jour le nombre des fichiers
+     */
     private void updateFileCount() {
 
         int count = (fileList == null) ? 0 : fileList.size();
@@ -550,7 +558,12 @@ public class MainController {
 
 // *****************************************   functions pour le quota   ****************************************
 
+    // ProgressBar: affiche le quota de stockage — avec une contrainte JavaFX : les composants internes d'un contrôle
+    // ne sont pas toujours disponibles immédiatement.
+
     private void initQuotaBarStyleOnce() {
+
+        //Un garde pour s'assurer que cette initialisation ne s'exécute qu'une seule fois
         if (quotaStyleInitialized) return;
         quotaStyleInitialized = true;
 
@@ -562,11 +575,12 @@ public class MainController {
     }
 
     private void setQuotaColor(String hexColor) {
-        quotaColor = hexColor;
-        refreshQuotaBarStyleWithRetry();
+        quotaColor = hexColor;              // mémorise la couleur courante
+        refreshQuotaBarStyleWithRetry();     // tente de l'appliquer
     }
 
     private void refreshQuotaBarStyleWithRetry() {
+
         // Essayer d'appliquer, et si bar/track pas prêts, retenter quelques pulses
         if (!refreshQuotaBarStyle()) {
             if (quotaStyleRetries++ < MAX_QUOTA_STYLE_RETRIES) {
@@ -589,6 +603,7 @@ public class MainController {
             return false;
         }
 
+        //#eeeeee => fehèr
         track.setStyle("-fx-background-color: #eeeeee; -fx-background-radius: 4px; -fx-background-insets: 0;");
         bar.setStyle(
                 "-fx-background-color: " + quotaColor + ";" +
@@ -615,7 +630,7 @@ public class MainController {
                         quotaBar.setProgress(0.0);
                         quotaLabel.setText("0 B / 0 B");
 
-                        setQuotaColor("#d9534f"); //rouge
+                        setQuotaColor("#d9534f");               //rouge
                         refreshQuotaBarStyleWithRetry();
                         return;
                     }
@@ -701,6 +716,7 @@ public class MainController {
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.initOwner(gestionQuota.getScene().getWindow());
             dialogStage.setScene(scene);
+
             controller.setDialogStage(dialogStage);
             controller.setApiClient(apiClient);
             controller.refreshNow();
@@ -878,12 +894,14 @@ public class MainController {
             // Récupération du contrôleur
             MySharesController controller = loader.getController();
 
-
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Mes partages");
             dialogStage.initModality(Modality.WINDOW_MODAL);
-            dialogStage.initOwner(treeView.getScene().getWindow());
+            dialogStage.initOwner(treeView.getScene().getWindow()); //treeView.=> composant FXML
+
             dialogStage.setScene(new Scene(root));
+
+            //interdire de redimensionner  la fenêtre => taille fixe
             dialogStage.setResizable(false);
 
             controller.setApiClient(apiClient);
@@ -981,13 +999,12 @@ public class MainController {
             dialogStage.setResizable(false);
             dialogStage.setScene(new Scene(root));
 
-
             dialogStage.setWidth(420);
             dialogStage.setHeight(400);
 
             controller.setStage(dialogStage);
 
-            currentNameFile =file.getName();
+            currentNameFile = file.getName();
             controller.setCurrentName(currentNameFile);
 
             controller.setOnConfirm(newName -> {
@@ -1023,16 +1040,17 @@ public class MainController {
                             );
                             dialogStage.close();
                         });
-                    } catch (IllegalArgumentException e) {
+                    } catch (IllegalArgumentException e) {  //erreur métier (validation)
+
                         // erreur de validation
                         e.printStackTrace();
                         Platform.runLater(() -> {
-                            UIDialogs.showError("Erreur de validation", null, e.getMessage());
-                            statusLabel.setText("Erreur pendant le renommage");
+                            UIDialogs.showError("Validation échouée lors du renommage", null, e.getMessage());
+                            statusLabel.setText("Validation échouée lors du renommage du fichier");
                             statusLabel.setVisible(true);
                             // pas fermer le dialogue
                         });
-                    }catch (Exception e){
+                    }catch (Exception e){       // erreur technique (réseau, API...)
                         e.printStackTrace();
                         Platform.runLater(() -> {
                             UIDialogs.showError("Erreur de renommage", null,"Erreur: " + e.getMessage());
@@ -1052,6 +1070,7 @@ public class MainController {
             UIDialogs.showError("Erreur", null,"Impossible d'ouvrir renameFile.fxml: " + e.getMessage());
         }
     }
+
 
     /**
      * ouvrir le dialog fileDetails.fxml pour voir les versions d'un fichier =>ok
@@ -1098,6 +1117,8 @@ public class MainController {
             UIDialogs.showError("Detail fichier", null,"Impossible d'ouvrir la fenetre: " + e.getMessage());
         }
     }
+
+
     /**
      * gestion de suppression d'un fichier => ok
      */
@@ -1188,6 +1209,7 @@ public class MainController {
             } catch (Exception e) {
                 e.printStackTrace();
                 Platform.runLater(() -> {
+
                     //réactiver les boutons
                     shareButton.setDisable(false);
                     deleteButton.setDisable(false);
@@ -1278,7 +1300,7 @@ public class MainController {
 
                 Platform.runLater(() -> {
                     if (success) {
-                        loadData(); // Recharger l'arborescence
+                        loadData();             // Recharger l'arborescence
                         statusLabel.setText("Dossier créé: " + name);
                     } else {
                         UIDialogs.showError("Erreur", null, "Impossible de créer le dossier.");
@@ -1348,7 +1370,7 @@ public class MainController {
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Renommer le dossier");
             dialogStage.initModality(Modality.WINDOW_MODAL);
-            dialogStage.initOwner(treeView.getScene().getWindow());
+            dialogStage.initOwner(treeView.getScene().getWindow());  // les dossiers sont dans le treeView
             dialogStage.setResizable(false);
             dialogStage.setScene(new Scene(root));
 
@@ -1375,7 +1397,7 @@ public class MainController {
 
                         Platform.runLater(() -> {
 
-                            loadData(); // => refresh Tree (arborescence
+                            loadData(); // => refresh Tree (arborescence)
                             statusLabel.setText("Dossier renommé en \"" + newName + "\"");
 
                             UIDialogs.showInfo(
@@ -1392,8 +1414,8 @@ public class MainController {
                         //Erreur de validation => nom vide, caractères invalides..
                         e.printStackTrace();
                         Platform.runLater(() -> {
-                            UIDialogs.showError("Erreur de validation", null, e.getMessage());
-                            statusLabel.setText("Erreur pendant le renommage");
+                            UIDialogs.showError("Validation échouée lors du renommage", null, e.getMessage());
+                            statusLabel.setText("Validation échouée lors du renommage du dossier");
                             // pas fermer le dialogue
                         });
                     }catch (Exception e){
@@ -1415,7 +1437,6 @@ public class MainController {
             UIDialogs.showError("Erreur", null,"Impossible d'ouvrir renameFolder.fxml" + e.getMessage());
         }
     }
-
 
 
     /**
@@ -1481,6 +1502,7 @@ public class MainController {
                 Platform.runLater(() -> {
 
                     //Si on est dans ce dossier => vider la table
+                    // entre 1 et 127 ca fonctionne <=> car x > 127, chaque Integer est un objet différent en mémoire  => avant j'ai utilisé Integer
                     if(currentFolder != null && currentFolder.getId() ==  folder.getId()){
                         fileList.clear();
                         updateFileCount();

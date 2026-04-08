@@ -78,6 +78,7 @@ public class ConfirmLogoutController {
                 // Fermer quand même la fenêtre
                 if (dialogStage != null) {
                     dialogStage.close();
+
                 }
             }
 

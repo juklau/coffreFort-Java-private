@@ -151,7 +151,6 @@ public class MySharesController {
                             break;
                         default:
                             setStyle("");
-
                     }
                 }
             }
@@ -184,7 +183,7 @@ public class MySharesController {
     }
 
     /**
-     * Charge les partages depuis l'API sans pagination => ne pas supprmier
+     * Charge les partages depuis l'API sans pagination => ne pas supprimer
      */
 //    private void loadShares() {
 //        System.out.println("MySharesController - loadShares() démarrage...");
@@ -296,7 +295,7 @@ public class MySharesController {
                 //style les bouton
                 copyBtn.setStyle("-fx-background-color: #b00909; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px");
                 revokeBtn.setStyle("-fx-background-color: #980b0b; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px");
-                deleteBtn.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 16px");
+                deleteBtn.setStyle("-fx-background-color: #d32f2f; -fx-text-fill: white; -fx-cursor: hand; -fx-font-size: 14px");
 
                 //tooltip => quand je survole??
                 copyBtn.setTooltip( new Tooltip("Copier le lien de partage"));
@@ -331,7 +330,7 @@ public class MySharesController {
                 } else {
                     ShareItem share = getTableView().getItems().get(getIndex());
 
-                    //désactive le btn révoquer s'il est déjà récoqué
+                    //désactive le btn révoquer s'il est déjà révoqué
                     revokeBtn.setDisable(share.isRevoked());
                     setGraphic(box);
                 }

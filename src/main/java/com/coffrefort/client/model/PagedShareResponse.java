@@ -20,5 +20,6 @@ public class PagedShareResponse {
 
     public void setTotal(int total) {
         this.total = total;
+
     }
 }

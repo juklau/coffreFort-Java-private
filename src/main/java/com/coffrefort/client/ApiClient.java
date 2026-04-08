@@ -51,6 +51,9 @@ public class ApiClient {
     public ApiClient() {
         this("http://localhost:9083");
     }
+//    public ApiClient() {
+//        this("https://cryptovault.iris.a3n.fr:4433");
+//    }
 
     /**
      * Initialise l’ApiClient avec une URL de backend personnalisée
@@ -125,7 +128,8 @@ public class ApiClient {
         // Construction du body JSON
         String jsonBody = String.format(
                 "{\"email\":\"%s\",\"password\":\"%s\"}",
-                email, password
+                JsonUtils.escapeJson(email),  //escapeJson() protège les caractères spéciaux dans le JSON
+                JsonUtils.escapeJson(password)
         );
 
         // Construction de la requête HTTP
@@ -180,6 +184,7 @@ public class ApiClient {
         return token;
     }
 
+
     /**
      * POST/auth/register puis POST/auth/login
      * Inscrit un utilisateur  puis le connecte => stocke le JWT
@@ -195,9 +200,14 @@ public class ApiClient {
         String registerUrl = baseUrl + "/auth/register";
 
         String registerJson = String.format(
-                "{\"email\":\"%s\",\"password\":\"%s\",\"quota_total\":\"%d\"}",
-                email, password, quotaTotal
+                "{\"email\":\"%s\",\"password\":\"%s\",\"quota_total\":%d}",
+                JsonUtils.escapeJson(email),        //escapeJson() protège les caractères spéciaux dans le JSON
+                JsonUtils.escapeJson(password),
+                quotaTotal
         );
+
+
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(registerUrl))
                 .header("Accept", "application/json")
@@ -229,8 +239,16 @@ public class ApiClient {
 
         String LoginJson = String.format(
                 "{\"email\":\"%s\",\"password\":\"%s\"}",
-                email, password
+                JsonUtils.escapeJson(email),        //escapeJson() protège les caractères spéciaux dans le JSON
+                JsonUtils.escapeJson(password)
         );
+
+//        System.out.println("=== REGISTER DEBUG ===");
+//        System.out.println("Email envoyé: " + email);
+//        System.out.println("Password longueur: " + password.length());
+//        System.out.println("JSON register: " + registerJson);
+//        System.out.println("=== LOGIN DEBUG ===");
+//        System.out.println("JSON login: " + LoginJson);
 
         HttpRequest loginRequest = HttpRequest.newBuilder()
                 .uri(URI.create(loginUrl))
@@ -700,7 +718,7 @@ public class ApiClient {
 
     /**
      * DELETE /folders/{id}
-     * Supprime un dossier et retourne true si succès =>ok
+     * Supprime un dossier =>ok
      * @param folderId
      * @return
      * @throws Exception
@@ -836,6 +854,7 @@ public class ApiClient {
             throw new RuntimeException("HTTP " +response.statusCode() + " lors du téléchargement: " + errorMessage);
         }
 
+        //récup de la taille totale => si inconnu = -1
         long total = -1;
         String cl = response.headers().firstValue("Content-Length").orElse(null);
         if(cl != null) {
@@ -845,6 +864,7 @@ public class ApiClient {
                 //ingore => total reste -1
             }
         }
+
 
         //copier le flux HTTP vers le fichier cible + progression
         //try-with-resources : ferme automatiquement in et out à la fin, même s'il y a erreur.
@@ -1147,7 +1167,6 @@ public class ApiClient {
 
         int status = response.statusCode();
 
-
         if(status == 200){
             //UIDialogs.showInfo("Succès", null, "Partage #\" + id + \" révoqué avec succès");
             System.out.println("Partage #" + id + " révoqué avec succès");
@@ -1416,9 +1435,12 @@ public class ApiClient {
 
         String url = baseUrl + "/files/" + fileId + "/versions";
         String boundary = "----CryptoVaultBoundary" + UUID.randomUUID();
+
+        // Apparition boundary => 1. Dans le header → pour dire au serveur "voici mon séparateur"
         String contentType = "multipart/form-data; boundary=" + boundary;
 
         //construction le multipart en bytes
+        // Apparition boundary => 2. Dans le corps → pour délimiter chaque partie
         byte[] bodyBytes = buildMultipartBody(newFile, boundary, null);
         long total = bodyBytes.length;
 
@@ -1654,15 +1676,33 @@ public class ApiClient {
 
     //**************************************  Methode PRIVATE   **************************************
 
+    /**
+     * Tente d'extraire un message d'erreur lisible depuis un corps de réponse JSON.
+     * Si le corps n'est pas du JSON valide ou ne contient pas de champ "error",
+     * retourne le message par défaut fourni.
+     *
+     * @param body           Corps brut de la réponse HTTP (peut être null, vide ou non-JSON)
+     * @param defaultMessage Message de repli retourné si l'extraction échoue
+     * @return               Le message d'erreur extrait, ou defaultMessage si introuvable
+     */
     private String parseErrorMessage(String body, String defaultMessage) {
         try {
+            // Tente d'extraire le champ "error" du JSON
+            // ex: {"error": "Fichier introuvable"} → "Fichier introuvable"
             String error = JsonUtils.extractJsonField(body, "error");
-            if (error!= null && !error.isEmpty()) {
+
+            if (error != null && !error.isEmpty()) {
+                // Décode les caractères échappés JSON
+                // ex: "Fichier \"secret.pdf\" introuvable" → Fichier "secret.pdf" introuvable
                 return JsonUtils.unescapeJsonString(error);
             }
+
         } catch (Exception e) {
-            // Ignore : le body n'est pas du JSON valide
+            // Le body n'est pas du JSON valide (HTML d'erreur, texte brut, null...)
+            // On ignore silencieusement et on tombe sur le return ci-dessous
         }
+
+        // Aucun champ "error" trouvé ou parsing échoué → message de repli
         return defaultMessage;
     }
 
@@ -1671,90 +1711,130 @@ public class ApiClient {
 
 
     /**
-     * construction d'un NodeItem "racine" virtuel avec tous les dossiers enfants
-     * Reconstruit l’arborescence NodeItem (racine virtuelle + enfants) à partir du JSON des dossiers
-     * @param json
-     * @return
+     * Reconstruit l'arborescence de dossiers (NodeItem) à partir d'un JSON brut.
+     * Retourne une racine virtuelle (id=0) non affichée dans l'UI (TreeView.showRoot = false),
+     * dont les enfants sont les dossiers de premier niveau.
+     *
+     * Exemple d'arborescence reconstruite :
+     *   [Racine virtuelle id=0]
+     *   ├── Travail (id=1, parentId=null)
+     *   │   └── Projets (id=3, parentId=1)
+     *   └── Personnel (id=2, parentId=null)
+     *
+     * @param json  JSON brut retourné par l'API (liste de dossiers)
+     * @return      Racine virtuelle contenant toute l'arborescence
      */
     private NodeItem buildFolderTreeFromJson(String json) {
+
+        // Désérialise le JSON en liste de DTO simples {id, name, parentId}
         List<JsonUtils.FolderDto> folders = JsonUtils.parseFolders(json);
 
-        // Racine virtuelle (id 0) non affichée parce que TreeView.showRoot = false
+        // Racine virtuelle (id=0) — sert uniquement de point d'attache,
+        // elle n'est pas visible car TreeView.showRoot = false
         NodeItem root = NodeItem.folder(0, "Racine");
-        // ou NodeItem root = NodeItem.folder(0, "Racine", NodeItem.NodeType.FOLDER);
+
+        // Map id → NodeItem pour retrouver un nœud parent en O(1)
         java.util.Map<Integer, NodeItem> map = new java.util.HashMap<>();
 
-        // Créer tous les noeuds
+        // 1ère passe : créer tous les nœuds et les indexer par leur id
         for (JsonUtils.FolderDto f : folders) {
             NodeItem node = NodeItem.folder(f.id, f.name);
-            // ou NodeItem node = NodeItem.folder(f.id, f.name, NodeItem.NodeType.FOLDER);
             map.put(f.id, node);
         }
 
-        // Assembler l'arborescence selon parent_id
+        // 2ème passe : relier chaque nœud à son parent selon parentId
         for (JsonUtils.FolderDto f : folders) {
             NodeItem node = map.get(f.id);
 
             if (f.parentId == null || f.parentId == 0) {
-
-                // dossier racine
+                // Pas de parent → dossier de premier niveau, rattaché à la racine virtuelle
                 root.addChild(node);
             } else {
                 NodeItem parent = map.get(f.parentId);
+
                 if (parent != null) {
+                    // Parent trouvé → rattachement normal
                     parent.addChild(node);
                 } else {
-
-                    // parent non trouvé → par sécurité à accrocher à la racine
+                    // Parent introuvable (données incohérentes) → sécurité :
+                    // on rattache à la racine pour ne pas perdre le dossier
                     root.addChild(node);
                 }
             }
         }
+
         return root;
     }
 
     /**
-     * Construit le body multipart/form-data (folder_id optionnel + part 'file') pour les uploads
-     * @param file
-     * @param boundary
-     * @return
-     * @throws Exception
+     * Construit le corps binaire d'une requête multipart/form-data.
+     * Contient deux parties possibles :
+     *   - "folder_id" (optionnelle) : l'id du dossier de destination
+     *   - "file"      (obligatoire) : le fichier à uploader
+     *
+     * Structure générée :
+     *   --boundary\r\n
+     *   Content-Disposition: form-data; name="folder_id"\r\n\r\n
+     *   42\r\n
+     *   --boundary\r\n
+     *   Content-Disposition: form-data; name="file"; filename="rapport.pdf"\r\n
+     *   Content-Type: application/pdf\r\n\r\n
+     *   [octets binaires du fichier]
+     *   \r\n
+     *   --boundary--\r\n
+     *
+     * @param file      Fichier local à envoyer (doit exister)
+     * @param boundary  Séparateur unique identifiant les parties (généré à l'appel)
+     * @param folderId  Id du dossier destination, ou null si non précisé
+     * @return          Corps complet de la requête sous forme de tableau d'octets
+     * @throws Exception Si la lecture du fichier échoue
      */
     private byte[] buildMultipartBody(File file, String boundary, Integer folderId) throws Exception {
+
+        // Séquence de fin de ligne imposée par la RFC multipart
         String CRLF = "\r\n";
 
+        // Détection automatique du type MIME selon l'extension du fichier
+        // ex: "rapport.pdf" → "application/pdf"
         String mimeType = Files.probeContentType(file.toPath());
         if (mimeType == null) {
-            mimeType = "application/octet-stream"; // fallback
+            // Type inconnu → type binaire générique
+            mimeType = "application/octet-stream";
         }
 
+        // Buffer en mémoire qui accumule toutes les parties
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        // ---- Partie "folder_id" (si fourni)
+        // ---- Partie optionnelle "folder_id" ----
         if (folderId != null) {
             String folderPart =
-                    "--" + boundary + CRLF +
-                            "Content-Disposition: form-data; name=\"folder_id\"" + CRLF + CRLF +
-                            folderId + CRLF;
+                    "--" + boundary + CRLF +                                    // début de partie
+                            "Content-Disposition: form-data; name=\"folder_id\"" + CRLF + CRLF +  // header
+                            folderId + CRLF;                                             // valeur
 
             output.write(folderPart.getBytes(StandardCharsets.UTF_8));
         }
 
-        // ---- Partie "file"
+        // ---- Partie obligatoire "file" : header ----
+        // Le double CRLF après le dernier header signale la fin des headers
+        // et le début du contenu binaire
         String filePartHeader =
                 "--" + boundary + CRLF +
                         "Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getName() + "\"" + CRLF +
-                        "Content-Type: " + mimeType + CRLF + CRLF;
+                        "Content-Type: " + mimeType + CRLF + CRLF;  // ← double CRLF obligatoire ici
 
         output.write(filePartHeader.getBytes(StandardCharsets.UTF_8));
 
+        // ---- Partie obligatoire "file" : contenu binaire ----
+        // Lecture complète du fichier en mémoire puis écriture dans le buffer
         byte[] fileBytes = Files.readAllBytes(file.toPath());
         output.write(fileBytes);
 
-        // Fin de la part fichier
+        // Séparateur de fin de la part fichier (CRLF avant le prochain boundary)
         output.write(CRLF.getBytes(StandardCharsets.UTF_8));
 
-        // ---- Fin multipart
+        // ---- Marqueur de fin du multipart ----
+        // Le "--" final après le boundary signale qu'il n'y a plus d'autres parties
         String ending = "--" + boundary + "--" + CRLF;
         output.write(ending.getBytes(StandardCharsets.UTF_8));
 
@@ -1819,11 +1899,23 @@ public class ApiClient {
 
 
     /**
-     * BodyPublisher wrapper qui comptabilise les octets envoyés et notifie un ProgressListener pendant l’upload
+     * Wrapper autour d'un BodyPublisher existant qui intercepte le flux d'octets
+     * sortants pour comptabiliser la progression de l'upload et notifier un listener.
+     *
+     * Principe du pattern "Decorator" :
+     *   ProgressBodyPublisher  →  délègue à  →  delegate (BodyPublisher réel)
+     *        │
+     *        └── intercepte chaque ByteBuffer pour mettre à jour la progression
      */
     private static class ProgressBodyPublisher implements HttpRequest.BodyPublisher {
+
+        // Le vrai publisher qui produit les données — on l'enveloppe sans le modifier
         private final HttpRequest.BodyPublisher delegate;
+
+        // Taille totale attendue en octets (pour calculer le pourcentage)
         private final long totalBytes;
+
+        // Callback appelé à chaque avancée de l'upload (peut être null)
         private final ProgressListener listener;
 
         ProgressBodyPublisher(HttpRequest.BodyPublisher delegate, long totalBytes, ProgressListener listener) {
@@ -1832,37 +1924,79 @@ public class ApiClient {
             this.listener = listener;
         }
 
+        /**
+         * Retourne la taille du contenu déclarée dans le header Content-Length.
+         * Priorité à totalBytes s'il est connu, sinon on délègue au publisher original.
+         */
         @Override
         public long contentLength() {
             return totalBytes >= 0 ? totalBytes : delegate.contentLength();
         }
 
+        /**
+         * Point d'entrée du flux réactif (java.util.concurrent.Flow).
+         * Le HTTP client appelle subscribe() pour commencer à consommer les données.
+         * On intercale notre propre Subscriber entre le delegate et le vrai subscriber
+         * pour observer les octets qui passent sans les modifier.
+         *
+         * Flux de données :
+         *   delegate (source) → notre Subscriber anonyme → subscriber (HTTP client)
+         */
         @Override
         public void subscribe(Flow.Subscriber<? super ByteBuffer> subscriber) {
+
+            // On demande au delegate de s'abonner à notre subscriber intermédiaire
             delegate.subscribe(new Flow.Subscriber<>() {
+
+                // Compteur d'octets déjà envoyés, local à cet abonnement
                 long sent = 0;
 
+                /**
+                 * Appelé une seule fois au démarrage de l'upload.
+                 * On transmet la souscription au vrai subscriber et on signale 0% au listener.
+                 */
                 @Override
                 public void onSubscribe(Flow.Subscription subscription) {
                     subscriber.onSubscribe(subscription);
+
+                    // Notification initiale : 0 octet envoyé sur totalBytes
                     if (listener != null) listener.onProgress(0, totalBytes);
                 }
 
+                /**
+                 * Appelé à chaque chunk de données prêt à être envoyé.
+                 * item est un ByteBuffer contenant un morceau du corps de la requête.
+                 * item.remaining() = nombre d'octets dans ce chunk.
+                 */
                 @Override
                 public void onNext(ByteBuffer item) {
-                    sent += item.remaining();
+                    sent += item.remaining();   // accumulation des octets envoyés
+
+                    // Notification intermédiaire : ex. 24576 / 84011 octets
                     if (listener != null) listener.onProgress(sent, totalBytes);
+
+                    // Transmission du chunk au HTTP client sans modification
                     subscriber.onNext(item);
                 }
 
+                /**
+                 * Appelé si le delegate rencontre une erreur pendant la production des données.
+                 * On propage simplement l'erreur au subscriber réel.
+                 */
                 @Override
                 public void onError(Throwable throwable) {
                     subscriber.onError(throwable);
                 }
 
+                /**
+                 * Appelé quand tous les octets ont été produits (fin de l'upload).
+                 * On force la progression à 100% avant de signaler la complétion.
+                 */
                 @Override
                 public void onComplete() {
+                    // Notification finale : totalBytes / totalBytes = 100%
                     if (listener != null) listener.onProgress(totalBytes, totalBytes);
+
                     subscriber.onComplete();
                 }
             });

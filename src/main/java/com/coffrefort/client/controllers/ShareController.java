@@ -153,7 +153,6 @@ public class ShareController {
 
             allowVersions.setVisible(false);
         }
-
     }
 
     /**

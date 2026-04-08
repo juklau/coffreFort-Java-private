@@ -94,7 +94,7 @@ public class FileDetailsController {
 
         versionsTable.setItems(versions);
 
-        rebinButtons();
+        rebindButtons();
 
         //pour assurer qu'il n'y a pas binding
         progressBox.visibleProperty().unbind();
@@ -137,6 +137,9 @@ public class FileDetailsController {
         this.stage = stage;
     }
 
+    /**
+     * mettre à jour le nom de la fenêtre
+     */
     private void updateTitle(){
         if(stage != null && file != null){
             stage.setTitle("Detail - " + file.getName());
@@ -295,7 +298,7 @@ public class FileDetailsController {
 
 
     //activation d'un bouton si (que) un bouton est séléctionné
-    private void rebinButtons(){
+    private void rebindButtons(){
 
         copyChecksumButton.disableProperty().bind(
                 Bindings.isNull(versionsTable.getSelectionModel().selectedItemProperty())
@@ -321,6 +324,9 @@ public class FileDetailsController {
      * Configure les colonnes de la table des versions et le double-clic pour copier le checksum
      */
     private void setupVersionTable(){
+
+        //PropertyValueFactory fonctionne par convention de nommage JavaFX :
+        // il prend le nom passé en paramètre, met une majuscule et cherche get + ce nom dans la classe :
 
         //colonne version
         versionCol.setCellValueFactory(new PropertyValueFactory<>("version"));
@@ -354,9 +360,9 @@ public class FileDetailsController {
 
             //affichage le menu => que si la ligne n'est pas vide
             row.contextMenuProperty().bind(
-                    javafx.beans.binding.Bindings.when(row.emptyProperty())
-                            .then((ContextMenu)null)
-                            .otherwise(contextMenu)
+                    javafx.beans.binding.Bindings.when(row.emptyProperty())     // est-ce que la ligne est vide ?
+                            .then((ContextMenu)null)                            // oui → pas de menu
+                            .otherwise(contextMenu)                             // non → menu "Supprimer"
             );
 
             // avec double clique => copier le checksum
@@ -379,7 +385,7 @@ public class FileDetailsController {
         }
 
         //ne pas supprimer la version courante
-        if(selected.getIsCurrent()){
+        if(selected.isCurrent()){
             UIDialogs.showError("Suppression impossible",
                     null,
                     "Impossible de supprimer la version active du fichier.\n" +
@@ -389,6 +395,7 @@ public class FileDetailsController {
         }
 
         // ne pas supprimer si c'est la seul version
+        //versions ou versionsTable.getItems().size() => kiprobalni
         if(versions.size() <= 1){
             UIDialogs.showError("Suppression impossible",
                     null,
@@ -424,7 +431,7 @@ public class FileDetailsController {
             );
 
             //callbacks
-            controller.setOnConfirm(() -> deleteVersion(selected));
+            controller.setOnConfirm(() -> deleteVersion(selected)); // "voici ce qu'il faudra faire"
             controller.setOnCancel(() -> {
                 if(uploadStatusLabel != null){
                     uploadStatusLabel.setText("Suppression annulée");
@@ -463,7 +470,7 @@ public class FileDetailsController {
         downloadVersionButton.setDisable(true);
 
         //en cas de supprime le dernière élément de la page, retourner à la page précédente
-        //dernière élément de la page (et pas la page 1)=> aller à la page précédente
+        //dernière élément de la page (et pas la page 1) => aller à la page précédente
         int itemsOnPage = versionsTable.getItems().size();
         int nextPage = (itemsOnPage == 1 && currentPage > 0) ? currentPage -1 : currentPage;
 
@@ -481,6 +488,7 @@ public class FileDetailsController {
                     loadVersions(nextPage);
 
                     //mise à jour le compteur
+                    //versions ou versionsTable.getItems().size() => kiprobalni
                     versionsCountLabel.setText(versions.size() + " version(s)");
 
                     // rafraîchir les données depuis le serveur
@@ -498,7 +506,7 @@ public class FileDetailsController {
                     downloadVersionButton.setDisable(false);
 
                     //rebind après modif
-                    rebinButtons();
+                    rebindButtons();
 
                     UIDialogs.showInfo("Suppression réussie",
                             null,
@@ -520,7 +528,7 @@ public class FileDetailsController {
                     downloadVersionButton.setDisable(false);
 
                     //rebind après modif
-                    rebinButtons();
+                    rebindButtons();
 
                     //affichage message d'erreur
                     String errorMessage = e.getMessage();
@@ -602,7 +610,7 @@ public class FileDetailsController {
         uploadStatusLabel.setText("Preparation upload...");
         uploadProgressBar.setProgress(0);
 
-        uploadService =  new UploadVersionService(apiClient, file.getId(), selected);
+        uploadService = new UploadVersionService(apiClient, file.getId(), selected);
 
         uploadProgressBar.progressProperty().bind(uploadService.progressProperty());
         uploadStatusLabel.textProperty().bind(uploadService.messageProperty());
@@ -624,7 +632,7 @@ public class FileDetailsController {
             //refresh version et header
             hydrateThenRefresh();
 
-            //reload liste fichiers et quota ... => callback vers MainController ???????
+            //reload liste fichiers et quota ... => callback vers MainController
             if(onVersionUploaded != null) {
                 onVersionUploaded.run();
             }
@@ -695,7 +703,7 @@ public class FileDetailsController {
         }
 
         try {
-            //si "path" est fichier => ouvrir son dossier parent
+            // si "path" est fichier => ouvrir son dossier parent
             // si "path" est un dossier => ouvrir ce dossier
             Path dir = Files.isDirectory(path) ? path : path.getParent();
 
@@ -707,7 +715,7 @@ public class FileDetailsController {
 
             if(Desktop.isDesktopSupported()){
 
-                //ouvrir le dossier dans l’explorateur de fichiers du système p.exFinder/Explorer
+                //ouvrir le dossier dans l’explorateur de fichiers du système p.ex: Finder/Explorer
                 Desktop.getDesktop().open(dir.toFile());
             }else{
 
@@ -730,15 +738,19 @@ public class FileDetailsController {
 
         if(sel == null || file == null) return;
 
+
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Enregistrer la version " + sel.getVersion());
         //chooser.setInitialFileName(file.getName());
         //chooser.setInitialFileName(file.getName() + "_v" + sel.getVersion());
         chooser.setInitialFileName("v" + sel.getVersion() + "_" + file.getName());
 
-        //configuration automatique les filtres
+        // ajoute automatiquement le bon filtre selon l'extension
+        // ex: pour .pdf → filtre "Fichiers PDF (*.pdf)"
         FileUtils.configureFileChooserFilter(chooser, file.getName());
 
+        //FileChooser ouvre la fenêtre de sauvegarde native de l'OS (Windows Explorer, Finder sur Mac...)
+        //Si l'utilisateur ferme sans choisir, showSaveDialog retourne null
         File target = chooser.showSaveDialog(stage);
         if(target == null) return;
 
@@ -760,32 +772,38 @@ public class FileDetailsController {
 
                         apiClient.downloadFileVersionTo(file.getId(), sel.getVersion(), target, (done, total) -> {
                             if(total > 0) {
-                                updateProgress(done, total);
+                                updateProgress(done, total);        // ex: 500Ko / 2Mo = 25%
                             }
                         });
                         updateMessage("Download complete");
-                        updateProgress(1, 1);
+                        updateProgress(1, 1);       // 100%
                         return null;
                     }
                 };
             }
         };
 
+        // La barre suit la progression automatiquement
         uploadProgressBar.progressProperty().bind(downloadService.progressProperty());
+
+        // Le label suit le message automatiquement
         uploadStatusLabel.textProperty().bind(downloadService.messageProperty());
 
+        // Boutons désactivés pendant le téléchargement
         downloadVersionButton.disableProperty().bind(downloadService.runningProperty());
         replaceButton.disableProperty().bind(downloadService.runningProperty());
 
         downloadService.setOnSucceeded(event -> {
+
+            // 1. Libérer tous les bindings (obligatoire avant de modifier manuellement)
             uploadProgressBar.progressProperty().unbind();
             uploadStatusLabel.textProperty().unbind();
             downloadVersionButton.disableProperty().unbind();
             replaceButton.disableProperty().unbind();
 
+            // 2. Réactiver les boutons manuellement
             replaceButton.setDisable(false);
             downloadVersionButton.setDisable(false);
-
 
             setProgressVisible(false);
 
@@ -795,14 +813,14 @@ public class FileDetailsController {
             // optionnel (UI) ?????????
             versionsTable.refresh();
 
-            // afficher le chemin (sur FX thread)
+            // afficher le chemin (sur FX thread) => notifier user
             Platform.runLater(() ->
                     UIDialogs.showInfo("Téléchargement", null, "Version téléchargée :\n" + target.getAbsolutePath())
             );
         });
 
         downloadService.setOnFailed(event -> {
-            Throwable ex = downloadService.getException();
+            Throwable ex = downloadService.getException();  // récupère l'exception du thread background
 
             uploadProgressBar.progressProperty().unbind();
             uploadStatusLabel.textProperty().unbind();
@@ -872,12 +890,13 @@ public class FileDetailsController {
     }
 
     /**
-     * énère une clé unique pour associer un fichier et une version à un chemin local téléchargé
+     * Génère une clé unique pour associer un fichier et une version à un chemin local téléchargé
      * @param fileId
      * @param versionNumber
      * @return
      */
     private static String key(long fileId, int versionNumber){
+
         return fileId + ":v" + versionNumber;
     }
 
@@ -888,10 +907,12 @@ public class FileDetailsController {
      */
     private static class UploadVersionService extends Service<Void> {
 
+        // 1. Les données nécessaires à l'upload
         private final ApiClient api;
         private final int fileId;
         private final File selectedFile;
 
+        // 2. Constructeur — injecte les dépendances
         UploadVersionService(ApiClient api, int fileId, File selectedFile) {
             this.api = api;
             this.fileId = fileId;
@@ -900,24 +921,29 @@ public class FileDetailsController {
 
         @Override
         /**
+         * 3. createTask() — appelé automatiquement par Service au démarrage
          * Crée la tâche d’upload avec suivi de progression et mise à jour des messages d’état
          */
         protected Task<Void> createTask() {
             return new Task<>() {
                 @Override
                 protected Void call() throws Exception {
+
+                    // ← tout ce qui est ici s'exécute dans le thread background
                     updateMessage("Upload en cours...");
                     updateProgress(-1, 1); // indeterminate au début
 
                     api.uploadNewVersion(fileId, selectedFile, (sent, total) -> {
                         if (isCancelled()) return;
-                        if (total > 0) updateProgress(sent, total);
-                        else updateProgress(-1, 1);
+                        if (total > 0){
+                            updateProgress(sent, total);        // ex: 500Ko / 2Mo = 25%
+                        }
+                        else updateProgress(-1, 1);       // taille inconnue → spinner
                     });
 
                     updateProgress(1, 1);
                     updateMessage("Upload terminé");
-                    return null;
+                    return null;                                 // Void → on retourne toujours null
                 }
             };
         }

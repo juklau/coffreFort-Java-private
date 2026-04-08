@@ -55,7 +55,7 @@ public class ConfirmDeleteFolderController {
     }
 
     /**
-     * Définit le callback à exécuter lorsque l’utilisateur confirme la suppression
+     * Définit le callback à exécuter lorsque l’utilisateur confirme la suppression => "stocke"
      * @param onConfirm
      */
     public void setOnConfirm(Runnable onConfirm) {
@@ -79,7 +79,7 @@ public class ConfirmDeleteFolderController {
      */
     private void handleConfirm() {
         if (onConfirm != null) {
-            onConfirm.run();
+            onConfirm.run();  //=> execute
         }
         close();
     }

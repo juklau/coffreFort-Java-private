@@ -134,7 +134,6 @@ public class RegisterController {
         System.out.println("handleRegister() appele !");
         clearAllErrors();
 
-
         String email = emailField1.getText() != null ? emailField1.getText().trim() : "";
         String password = passwordField1.getText() != null ? passwordField1.getText().trim() : "";
         String confirmPassword = confirmPasswordField1.getText() != null ? confirmPasswordField1.getText().trim() : "";
@@ -142,6 +141,11 @@ public class RegisterController {
         //validation côté Client
         if (email.isEmpty()) {
             showError("Veuillez saisir votre email.");
+            return;
+        }
+
+        if (email.length() > 255) {
+            showError("L'email est trop long (maximum 255 caractères).");
             return;
         }
 
@@ -157,8 +161,37 @@ public class RegisterController {
             return;
         }
 
-        if(password.length() < 8){
-            showError("Le mot de passe est trop court (minimum 8 caractères).");
+        if(password.length() < 12){
+            showError("Le mot de passe est trop court (minimum 12 caractères).");
+            return;
+        }
+
+        if (password.length() > 128) {
+            showError("Le mot de passe ne peut pas dépasser 128 caractères.");
+            return;
+        }
+
+        // au moins une lettre majuscule
+        if (!password.matches(".*[A-Z].*")) {
+            showError("Le mot de passe doit contenir au moins une lettre majuscule.");
+            return;
+        }
+
+        // au moins une lettre minuscule
+        if (!password.matches(".*[a-z].*")) {
+            showError("Le mot de passe doit contenir au moins une lettre minuscule.");
+            return;
+        }
+
+        // au moins un chiffre
+        if (!password.matches(".*[0-9].*")) {
+            showError("Le mot de passe doit contenir au moins un chiffre.");
+            return;
+        }
+
+        // au moins un caractère spécial
+        if (!password.matches(".*[\\W_].*")) {
+            showError("Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*...).");
             return;
         }
 
@@ -185,7 +218,7 @@ public class RegisterController {
             registerButton1.setDisable(true);
         }
 
-        if(statusLabel1 != null) { //=> ???????????
+        if(statusLabel1 != null) { //=> ?
             statusLabel1.setText("Inscription en cours...");
             statusLabel1.setVisible(true);
         }
@@ -279,7 +312,12 @@ public class RegisterController {
                         }else{
                             showError(errorMessage);
                         }
-                    } else if (errorMessage.toLowerCase().contains("password") || errorMessage.toLowerCase().contains("mot de passe")) {
+                    } else if (errorMessage.toLowerCase().contains("password")
+                            || errorMessage.toLowerCase().contains("mot de passe")
+                            || errorMessage.toLowerCase().contains("caractère")
+                            || errorMessage.toLowerCase().contains("majuscule")
+                            || errorMessage.toLowerCase().contains("minuscule")
+                            || errorMessage.toLowerCase().contains("chiffre")) {
 
                         //erreur lié au password
                         if(passwordError1 != null) {
@@ -311,13 +349,13 @@ public class RegisterController {
      */
     @FXML
     public void handleGoToLogin(){
-        openLogin();
+        openLogin();        // délègue à la méthode interne
     }
 
     //méthode intern => pour revenir à l'écran Login
     public void openLogin(){
         if(onGoToLogin != null){
-            onGoToLogin.run();
+            onGoToLogin.run();      // exécute ce qu'on a injecté depuis App.java
         }
     }
 

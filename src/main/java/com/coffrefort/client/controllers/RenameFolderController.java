@@ -71,12 +71,17 @@ public class RenameFolderController {
         hideError();
 
         if(onConfirm != null){
+
+            //doit recevoir le nom du dossier saisi par l'utilisateur
+            // il faut passer une valeur
+            //  => Runnable ne peut pas faire ça, Consumer<String> oui.
             onConfirm.accept(newName);
         }
     }
 
     public void close(){
         if(dialogStage != null){
+
             dialogStage.close();
         }
     }

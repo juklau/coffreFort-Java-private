@@ -79,13 +79,12 @@
                 <Button fx:id="gestionQuota"
                         onAction="#handleQuota"
                         prefHeight="33.0"
-                        prefWidth="133.0"
                         style="-fx-background-color: #980b0b;
                             -fx-text-fill: white;
                             -fx-background-radius: 4;
                             -fx-cursor: hand;
                             -fx-padding: 8 16;"
-                        text="Modifier le quota">
+                        text="Gestion des utilisateurs">
                     <font>
                         <Font size="12" />
                     </font>

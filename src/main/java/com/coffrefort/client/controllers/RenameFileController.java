@@ -61,15 +61,15 @@ public class RenameFileController {
             }
         }else{
             fileExtension = "";
-            nameField.setText(name);
+            nameField.setText(name);        // le nom complet dans le champ
 
             if(extensionLabel != null){
-                extensionLabel.setText("");
+                extensionLabel.setText("");  // label vide
             }
         }
 
-        nameField.requestFocus();
-        nameField.selectAll();
+        nameField.requestFocus();       // place le curseur dans le champ
+        nameField.selectAll();          // sélectionne tout le texte
     }
 
     /**

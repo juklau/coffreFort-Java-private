@@ -38,7 +38,7 @@ public class SessionManager {
         // arrêter l'ancien timer s'il existe
         stopSessionMonitoring();
 
-        sessionTimer = new Timer(true); //=>deamon thread
+        sessionTimer = new Timer(true);         //=>deamon thread
         sessionTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -100,7 +100,7 @@ public class SessionManager {
                 );
 
                 //rediriger vers UI connexion
-                onSessionExpired.run();
+                onSessionExpired.run();  //il est injecté depuis App.java au démarrage  => openLogin(stage)
             }
         });
     }

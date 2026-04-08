@@ -140,7 +140,7 @@
             <!-- Region extensible pour pousser le lien à droite -->
             <Region HBox.hgrow="ALWAYS"/>
 
-            <Hyperlink fx:id="ForgotPasswordLink"
+            <Hyperlink fx:id="forgotPasswordLink"
                        text="Mot de passe oublié?"
                        style="-fx-text-fill: #980b0b; -fx-cursor: hand;" />
         </HBox>

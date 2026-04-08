@@ -114,7 +114,11 @@ public class CreateFolderController {
         }
 
         if (onCreateFolder != null) {
-            onCreateFolder.accept(name);
+
+            //doit recevoir le nom du dossier saisi par l'utilisateur
+            // il faut passer une valeur
+            //  => Runnable ne peut pas faire ça, Consumer<String> oui.
+            onCreateFolder.accept(name);        // => envoie "MonDossier" au callback
         }
 
         if (dialogStage != null) {

@@ -9,8 +9,8 @@ public class FileEntry {
     private int id; //=> pour pouvoir supprimer, renommer, télécharger
 
     //Jackson mappe "original_name"(backend) en "name"(Java)
-    @JsonProperty("original_name")
-    private String name;
+    @JsonProperty("original_name")  // ← JSON utilise
+    private String name;            // ← Java utilise
 
     private long size;
 
@@ -58,9 +58,9 @@ public class FileEntry {
      */
     public String getFormattedSize() {
         long bytes = size;
-        if (bytes < 1024) return bytes + " B";                //=> size "bytes"
+        if (bytes < 1024) return bytes + " B";               //=> size "bytes"
         int exp = (int) (Math.log(bytes) / Math.log(1024));  // => exposant
-        char unit = "KMGTPE".charAt(exp - 1);               //p.ex exp=1 -> "K"
+        char unit = "KMGTPE".charAt(exp - 1);                //p.ex exp=1 -> "K"
         double val = bytes / Math.pow(1024, exp);            // Math.pow => val = 2048 / 1024 = 2.0 KB
         return String.format("%.1f %sB", val, unit);
     }

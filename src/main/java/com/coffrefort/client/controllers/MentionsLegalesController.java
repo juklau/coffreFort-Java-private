@@ -83,6 +83,7 @@ public class MentionsLegalesController {
             e.printStackTrace();
             UIDialogs.showError("Erreur", null,
                     "Impossible de retourner à la page de connexion : " + e.getMessage());
+
         }
     }
 

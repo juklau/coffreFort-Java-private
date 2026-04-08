@@ -113,7 +113,7 @@ public class UploadDialogController {
         // une autre possibilité pour choisir des fichiers
         // fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Tous les fichiers", "*.*"));
 
-        //filtrer les types de fichiers autorisés ???? à érifier
+        //filtrer les types de fichiers autorisés
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Tous les fichiers autorisés",
                         "*.jpg", "*.jpeg", "*.png", "*.webp", "*.pdf", "*.doc", "*.docx", "*.xlsx"),
@@ -245,6 +245,7 @@ public class UploadDialogController {
         uploadButton.setDisable(true);
         cancelButton.setDisable(true);
 
+        //affichage l'avancement du progressContainer
         progressContainer.setVisible(true);
         progressContainer.setManaged(true);
         uploadProgressBar.setProgress(0);
@@ -370,18 +371,23 @@ public class UploadDialogController {
         selectedFilesList.getChildren().clear();
 
         if (selectedFiles.isEmpty()) {
+
+            //afficher message
             noFileLabel.setVisible(true);
-            noFileLabel.setManaged(true);
+            noFileLabel.setManaged(true);       // => occupe de la place dans le layout
             selectedFilesList.getChildren().add(noFileLabel);
+
+            //désactiver le btn
             uploadButton.setDisable(true);
             return;
         }
 
         noFileLabel.setVisible(false);
-        noFileLabel.setManaged(false);
+        noFileLabel.setManaged(false);      // ne prend plus de place dans le layout
 
+        //pour chaque fichier  => crée une ligne HBox
         for (File file : selectedFiles) {
-            HBox row = new HBox(8);
+            HBox row = new HBox(8);     // espacement de 8px entre les éléments
             Label nameLabel = new Label(file.getName());
             nameLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #333333;");
 
@@ -391,8 +397,8 @@ public class UploadDialogController {
             Button removeBtn = new Button("✖");
             removeBtn.setStyle("-fx-font-size: 10px; -fx-background-color: transparent; -fx-text-fill: #980b0b;");
             removeBtn.setOnAction(e -> {
-                selectedFiles.remove(file);
-                refreshSelectedFilesUI();
+                selectedFiles.remove(file);     // retire de la liste des données
+                refreshSelectedFilesUI();       // rappelle cette méthode → redessine tout
             });
 
             row.getChildren().addAll(nameLabel, sizeLabel, removeBtn);

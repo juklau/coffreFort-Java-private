@@ -91,6 +91,8 @@ public class ModifyQuotaController {
 
         double quotaGB;
         try{
+
+            //vérifier si c'est un nombre
             quotaGB = Double.parseDouble(quotaText.trim());
         }catch(NumberFormatException e){
             showError("Format invalide. Veuillez saisir un nombre (ex.10)");
@@ -102,8 +104,8 @@ public class ModifyQuotaController {
             return;
         }
 
-        //convertir GB en bytes
-        long quotaBytes = (long)(quotaGB * 1024.0 * 1024.0 *  1024.0);
+        //convertir GB en bytes (10 GB → 10 737 418 240 bytes)
+        long quotaBytes = (long)(quotaGB * 1024.0 * 1024.0 * 1024.0);
 
         //vérif si le nouveau quota >= espace utilisé
         if(quotaBytes < user.getUsed()){
@@ -132,9 +134,10 @@ public class ModifyQuotaController {
                     );
 
                     if(onSuccess != null){
+
+                        //une action à exécuter après le succès, définie par celui qui a ouvert cette fenêtre de dialogue.
                         onSuccess.run();
                     }
-
 
                     if(dialogStage != null){
                         dialogStage.close();

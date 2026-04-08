@@ -35,7 +35,7 @@
 
         <!-- Titre + sous-titre -->
         <VBox alignment="CENTER_LEFT" spacing="4" HBox.hgrow="ALWAYS">
-            <Text text="Gestion des quotas utilisateurs"
+            <Text text="Gestion des utilisateurs"
                   fill="#980b0b"
                   style="-fx-font-weight: bold; -fx-font-size: 18px;"/>
 

@@ -24,8 +24,8 @@ public class ShareItem {
     private String fileName;
 
     // //Jackson mappe "is_revoked"(backend) en "revoked"(Java)
-    @JsonProperty("is_revoked")
-    private boolean revoked;
+    @JsonProperty("is_revoked")      // ← JSON utilise
+    private boolean revoked;         // ← Java utilise
     private boolean allowFixedVersion;
 
 
@@ -232,9 +232,5 @@ public class ShareItem {
                 ", status + " + getStatus() + '\'' +
                 '}';
     }
-
-
-
-
 
 }

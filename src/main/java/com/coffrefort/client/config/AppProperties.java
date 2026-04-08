@@ -27,6 +27,7 @@ public class AppProperties {
 
     private AppProperties() {
         // private => pour empêcher instancier la classe
+
     }
 
 }

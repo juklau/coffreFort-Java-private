@@ -9,6 +9,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -18,7 +20,7 @@ import java.net.URL;
  */
 public class App extends Application {
 
-    //private final ApiClient apiClient = new ApiClient(); avant implementation de SessionManager
+    //private final ApiClient apiClient = new ApiClient();      => avant implementation de SessionManager
     private ApiClient apiClient;
 
 
@@ -46,38 +48,52 @@ public class App extends Application {
      * @param stage
      */
     public void openLogin(Stage stage) {
+
         try {
 
-            //arrêter la session quand on retourne au login
-            SessionManager.getInstance().stopSessionMonitoring();
+            //arrêter la session quand on retourne au login ???
+            SessionManager.getInstance().stopSessionMonitoring(); //=> il était dans le global try
+        } catch (Exception e) {
+            System.err.println("Avertissement : arrêt session échoué : " + e.getMessage());
+            // on continue quand même
+        }
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/coffrefort/client/login2.fxml"));
+        try {
+
+            var url = getClass().getResource("/com/coffrefort/client/login2.fxml");
+            if (url == null){
+                throw new RuntimeException("login2.fxml introuvable dans les ressources");
+            }
+            FXMLLoader loader = new FXMLLoader(url);
 
             // Controller factory pour injecter ApiClient et callbacks
             loader.setControllerFactory(type -> {
                 if (type == LoginController.class) {
-                    LoginController c = new LoginController();
-                    c.setApiClient(apiClient);
+                    LoginController controller = new LoginController();
+                    controller.setApiClient(apiClient);
 
-                    // Après connexion réussie → tableau de bord
-                    c.setOnSuccess(() -> openMainAndClose(stage));
+                    // Après connexion réussie -> tableau de bord
+                    controller.setOnSuccess(() -> openMainAndClose(stage));
 
-                    // Clique sur "S'inscrire" → ouvrir l'écran d'inscription
-                    c.setOnGoToRegister(() -> openRegister(stage));
+                    // Clique sur "S'inscrire" -> ouvrir l'écran d'inscription
+                    controller.setOnGoToRegister(() -> openRegister(stage));
 
-                    return c;
+                    return controller;
                 }
+
                 try {
                     return type.getDeclaredConstructor().newInstance();
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+
+                    //pour dire quel controleur n'a pas réussi instancier le login
+                    throw new RuntimeException("Impossible d'instancier le contrôleur : " + type.getName(), e);
                 }
             });
 
             Parent root = loader.load();
             Scene scene = new Scene(root, 450, 650);
 
-            stage.setScene(scene); //avec ça le stage reste 1024x640
+            stage.setScene(scene);      //avec ça le stage reste 1024 x 640
             stage.setTitle("Coffre-fort numérique — Connexion");
 
             //il faut redimensionner!! sinon il prend la taille de main.fxml
@@ -86,38 +102,44 @@ public class App extends Application {
             stage.setResizable(false);
             stage.centerOnScreen();
             stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             throw new RuntimeException("Impossible de charger login2.fxml", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur inattendue lors de l'ouverture du login", e);
         }
     }
 
 
     /**
-     * ÉCRAN INSCRIPTION
+     * ÉCRAN INSCRIPTION => à vérif
      * @param stage
      */
     public void openRegister(Stage stage) {
+
+        var url = getClass().getResource("/com/coffrefort/client/register.fxml");
+        if (url == null) {
+            throw new RuntimeException("register.fxml introuvable dans les ressources");
+        }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/coffrefort/client/register.fxml"));
+            FXMLLoader loader = new FXMLLoader(url);
 
             loader.setControllerFactory(type -> {
                 if (type == RegisterController.class) {
-                    RegisterController c = new RegisterController();
-                    c.setApiClient(apiClient);
+                    RegisterController controller = new RegisterController();
+                    controller.setApiClient(apiClient);
 
                     // Après inscription réussie → retour à l'écran de login
-                    c.setOnRegisterSuccess(() -> openMainAndClose(stage));
+                    controller.setOnRegisterSuccess(() -> openMainAndClose(stage));
 
                     // Clique sur "Se connecter" → retour à l'écran de login
-                    c.setOnGoToLogin(() -> openLogin(stage));
+                    controller.setOnGoToLogin(() -> openLogin(stage));
 
-                    return c;
+                    return controller;
                 }
                 try {
                     return type.getDeclaredConstructor().newInstance();
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Impossible d'instancier le contrôleur : " + type.getName(), e);
                 }
             });
 
@@ -133,28 +155,51 @@ public class App extends Application {
             stage.setResizable(false);
             stage.centerOnScreen();
             stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             throw new RuntimeException("Impossible de charger register.fxml", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur inattendue lors de l'ouverture de l'inscription", e);
         }
     }
 
 
     /**
      * TABLEAU DE BORD
-     *  * @param loginStage
+     *  * @param loginStage  => megnezni hogy megy -e!!!!!
      * Solution avec data URI pour inclure le CSS directement
      */
     private void openMainAndClose(Stage loginStage) {
+
+        var url = getClass().getResource("/com/coffrefort/client/main.fxml");
+        if (url == null) {
+            throw new RuntimeException("main.fxml introuvable dans les ressources");
+        }
         try {
             System.out.println("App - Chargement de main.fxml...");
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/coffrefort/client/main.fxml"));
+            FXMLLoader loader = new FXMLLoader(url);
+
+            // avant je n'avais pas cette partie => oader.setControllerFactory
+            loader.setControllerFactory(type -> {
+                if (type == MainController.class) {
+                    MainController controller = new MainController();
+                    controller.setApiClient(apiClient);
+                    controller.setApp(this);
+                    return controller;
+                }
+                try {
+                    return type.getDeclaredConstructor().newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException("Impossible d'instancier : " + type.getName(), e);
+                }
+            });
+
             Parent root = loader.load();  //le controller est créé
 
+            //récuperer le controller
             MainController controller = loader.getController();
-            controller.setApiClient(apiClient);
-            controller.setApp(this);  //passer App en référence au MainController
+//            controller.setApiClient(apiClient); => avant il était ici
+//            controller.setApp(this);  //passer App en référence au MainController  => avant il était ici
             controller.checkAdminRole();
             //loader.setController(controller);
 
@@ -185,9 +230,10 @@ public class App extends Application {
 
             System.out.println("App - Interface principale affichée");
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             throw new RuntimeException("Impossible de charger main.fxml", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur inattendue lors de l'ouverture du tableau de bord", e);
         }
     }
 
