@@ -1,6 +1,5 @@
 package com.coffrefort.client.controllers;
 
-import com.coffrefort.client.ApiClient;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -31,6 +30,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(ApplicationExtension.class)
 @DisplayName("RegisterController - Validation du formulaire")
 class RegisterControllerTest {
+
+    // mot de passe valide réutilisé dans tous les tests qui ne testent pas le password
+    private static final String VALID_PASSWORD = "ValidPass123!";
 
     private RegisterController controller;
 
@@ -87,7 +89,7 @@ class RegisterControllerTest {
         stage.show();
     }
 
-    // ─── Helper ─────────────────────────────────────────────
+    // ─── Helpers ────────────────────────────────────────────
 
     private void inject(String fieldName, Object value) throws Exception {
         var f = RegisterController.class.getDeclaredField(fieldName);
@@ -101,12 +103,13 @@ class RegisterControllerTest {
         confirmPasswordField.setText(confirm);
     }
 
-    // ==================== CAS NOMINAL ====================
+    // ==================== CAS NOMINAUX ====================
 
     @Test
     @DisplayName("Devrait afficher une erreur si l'email est vide")
     void testHandleRegister_emailVide_afficheErreur() {
-        setFields("", "motdepasse1", "motdepasse1");
+        // mot de passe valide — seul l'email doit échouer
+        setFields("", VALID_PASSWORD, VALID_PASSWORD);
 
         controller.handleRegister();
 
@@ -134,12 +137,13 @@ class RegisterControllerTest {
         assertTrue(errorLabel.isManaged());
     }
 
-    // ==================== CAS D'ERREUR : VALIDATION EMAIL ====================
+    // ==================== VALIDATION EMAIL ====================
 
     @Test
     @DisplayName("Devrait afficher une erreur si le format de l'email est invalide")
     void testHandleRegister_emailFormatInvalide_afficheErreur() {
-        setFields("emailsansarobase", "motdepasse1", "motdepasse1");
+        // mot de passe valide — seul l'email doit échouer
+        setFields("emailsansarobase", VALID_PASSWORD, VALID_PASSWORD);
 
         controller.handleRegister();
 
@@ -147,7 +151,19 @@ class RegisterControllerTest {
         assertTrue(errorLabel.isVisible());
     }
 
-    // ==================== CAS D'ERREUR : VALIDATION PASSWORD ====================
+    @Test
+    @DisplayName("Devrait afficher une erreur si l'email dépasse 255 caractères")
+    void testHandleRegister_emailTropLong_afficheErreur() {
+        String emailTropLong = "a".repeat(250) + "@test.fr";
+        setFields(emailTropLong, VALID_PASSWORD, VALID_PASSWORD);
+
+        controller.handleRegister();
+
+        assertEquals("L'email est trop long (maximum 255 caractères).", errorLabel.getText());
+        assertTrue(errorLabel.isVisible());
+    }
+
+    // ==================== VALIDATION MOT DE PASSE ====================
 
     @Test
     @DisplayName("Devrait afficher une erreur si le mot de passe est vide")
@@ -161,20 +177,85 @@ class RegisterControllerTest {
     }
 
     @Test
-    @DisplayName("Devrait afficher une erreur si le mot de passe est trop court")
+    @DisplayName("Devrait afficher une erreur si le mot de passe est trop court (< 12 caractères)")
     void testHandleRegister_passwordTropCourt_afficheErreur() {
-        setFields("test@test.fr", "abc", "abc");
+        // 11 chars, sinon déclenche d'autres règles → on teste juste la longueur
+        setFields("test@test.fr", "Short1!", "Short1!");
 
         controller.handleRegister();
 
-        assertEquals("Le mot de passe est trop court (minimum 8 caractères).", errorLabel.getText());
+        assertEquals("Le mot de passe est trop court (minimum 12 caractères).", errorLabel.getText());
         assertTrue(errorLabel.isVisible());
     }
 
     @Test
+    @DisplayName("Devrait afficher une erreur si le mot de passe dépasse 128 caractères")
+    void testHandleRegister_passwordTropLong_afficheErreur() {
+        // 129 chars avec majuscule, minuscule, chiffre, spécial
+        String trop_long = "A1!" + "a".repeat(126);
+        setFields("test@test.fr", trop_long, trop_long);
+
+        controller.handleRegister();
+
+        assertEquals("Le mot de passe ne peut pas dépasser 128 caractères.", errorLabel.getText());
+        assertTrue(errorLabel.isVisible());
+    }
+
+    @Test
+    @DisplayName("Devrait afficher une erreur si le mot de passe n'a pas de majuscule")
+    void testHandleRegister_passwordSansMajuscule_afficheErreur() {
+        String sansMajuscule = "lowercase123!";
+        setFields("test@test.fr", sansMajuscule, sansMajuscule);
+
+        controller.handleRegister();
+
+        assertEquals("Le mot de passe doit contenir au moins une lettre majuscule.", errorLabel.getText());
+        assertTrue(errorLabel.isVisible());
+    }
+
+    @Test
+    @DisplayName("Devrait afficher une erreur si le mot de passe n'a pas de minuscule")
+    void testHandleRegister_passwordSansMinuscule_afficheErreur() {
+        String sansMinuscule = "UPPERCASE123!";
+        setFields("test@test.fr", sansMinuscule, sansMinuscule);
+
+        controller.handleRegister();
+
+        assertEquals("Le mot de passe doit contenir au moins une lettre minuscule.", errorLabel.getText());
+        assertTrue(errorLabel.isVisible());
+    }
+
+    @Test
+    @DisplayName("Devrait afficher une erreur si le mot de passe n'a pas de chiffre")
+    void testHandleRegister_passwordSansChiffre_afficheErreur() {
+        String sansChiffre = "PasswordOnly!";
+        setFields("test@test.fr", sansChiffre, sansChiffre);
+
+        controller.handleRegister();
+
+        assertEquals("Le mot de passe doit contenir au moins un chiffre.", errorLabel.getText());
+        assertTrue(errorLabel.isVisible());
+    }
+
+    @Test
+    @DisplayName("Devrait afficher une erreur si le mot de passe n'a pas de caractère spécial")
+    void testHandleRegister_passwordSansSpecial_afficheErreur() {
+        String sansSpecial = "Password12345";
+        setFields("test@test.fr", sansSpecial, sansSpecial);
+
+        controller.handleRegister();
+
+        assertEquals("Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*...).", errorLabel.getText());
+        assertTrue(errorLabel.isVisible());
+    }
+
+    // ==================== VALIDATION CONFIRMATION ====================
+
+    @Test
     @DisplayName("Devrait afficher une erreur si la confirmation est vide")
     void testHandleRegister_confirmPasswordVide_afficheErreur() {
-        setFields("test@test.fr", "motdepasse1", "");
+        // mot de passe valide, confirmation vide
+        setFields("test@test.fr", VALID_PASSWORD, "");
 
         controller.handleRegister();
 
@@ -185,7 +266,7 @@ class RegisterControllerTest {
     @Test
     @DisplayName("Devrait afficher une erreur si les mots de passe ne correspondent pas")
     void testHandleRegister_passwordsNonIdentiques_afficheErreur() {
-        setFields("test@test.fr", "motdepasse1", "motdepasse2");
+        setFields("test@test.fr", VALID_PASSWORD, "DifferentPass123!");
 
         controller.handleRegister();
 
@@ -196,7 +277,8 @@ class RegisterControllerTest {
     @Test
     @DisplayName("Devrait afficher une erreur si la case 'afficher mot de passe' est cochée")
     void testHandleRegister_showPasswordCoche_afficheErreur() {
-        setFields("test@test.fr", "motdepasse1", "motdepasse1");
+        // mot de passe valide — seule la case cochée doit échouer
+        setFields("test@test.fr", VALID_PASSWORD, VALID_PASSWORD);
         showPasswordCheckBox.setSelected(true);
 
         controller.handleRegister();
